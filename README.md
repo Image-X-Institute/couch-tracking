@@ -1,4 +1,3 @@
-# couch-tracking
 # Couch tracking and tumour motion replication 
 This project required Raspberry Pi and 1D motor. The motor is receiving tumour positional information via UDP from KIM and generate 1D corresponding motion in real-time.
 
