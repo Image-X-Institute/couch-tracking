@@ -37,6 +37,7 @@ Lidar 515 cemara minimum detect distance is 50mm. Cameras give most accurate mea
 Pre-requisite for running depth cameras.
 #### UDPsend_MultiROI.py
 User gets to select two ROIs with cursor on depth camera frame. After two ROIs being selected, depth measurement starts. The measurements are printed on screen on real-time. Depth measurement from ROI 1 will be sent via UDP sender, which is designed to be listened by Raspberry Pi and operate the couch motor. After exit the depth measurement, frame number, time stamp, ROI 1 measurement, ROI 2 measurement will be stored in an excel file. 
-
+#### Other software
+The couch tracking system works with both real-time depth camera measurements, and KIM measurements. In clinical setup, KV images are acquired and being processed by KIM, and communicates with couch tracking system via UDP. UDP transmission is built with a physical router and ethernet cables. (UDP can be done wirelessly howvever with the consideration of hospital IT system security requirement and stabilty, we decide to build physical connection.)
 #### motor_analysis.ipynb
 The code is for motion compensation performance evaluation, 1D platform and 6DoF robotic arm trace generation.
