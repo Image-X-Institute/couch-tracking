@@ -16,16 +16,21 @@ Depth camera is used to verify the accuracy of the motor trace. Depth camera is 
 
 
 #### bulletConsole_discrete.cpp
-Let the motor run to specific position by input the depth information on console.
+Let the motor run to specific position by input the depth information on console. The code can be used for testing the motor functionality for debugging purpose.
 #### motor_runbytrace.cpp
 Asking the trace you would like to read, and let motor run continuously according to the trace given. 
 #### UDPreader_discrete.cpp
-It listens to UDP signal and move the motor to the given a position accordingly (discrete motion). The UDP sender is written in Python. 
+It listens to UDP signal and move the motor to the given a position accordingly (discrete motion). The UDP sender is written in Python. The code is used for testing the UDP transmission and whether motor can comprehend the incoming data point and execute accordingly.
 #### UDPreader_trace.cpp
 Listens to KIM UDPsender, and extracts 1D information, moves the motor in opposite direction.
-#### UDPreader_realtime.cpp
-Listen to UDP transmission that contains 1D depth measurement. Motor home position is set to 100mm. Offset value specify the distance bewteen depth camera and tracking object. Motor begins motion compensation with the given offset as home position. Home position and offset values can be changed and adapt to in practice setup.
-
+#### UDPreader_realtime_2.cpp
+Listen to UDP transmission that contains 1D depth measurement. Motor home position is set to 50mm. Offset value specify the distance bewteen depth camera and tracking object. Motor begins motion compensation with the given offset as home position. Home position and offset values can be changed and adapt to in practice setup. UDP listening and motor motion are seperated into two threads. Motor only execute the latest coming data point and ignore others while it is in operation.
+#### UDPread_KIMnoMotion.cpp
+Listening to the KIM UDP sender and print the received data point on console. 
+#### UDPreader_KIMreplicating.cpp
+Listening to the KIM UDP sender and motor replicating 1D motion. The dimensional of the motion that replicated by motor can be specified. This is for testing in-lab, to see if motor is able to comprehend in-coming data point. 
+#### UDPreader_KIM.cpp
+Listening to KIM UDP sender and perform motion compensation. This is meant to use in clincial environment. Robotic arm is on top of the couch holding a phantom. KV images are collected and processed by KIM. The real-time positional data points are sent via UDP transmission, received by Raspberry Pi which operate the motor to perform motion compensation. 
 ## UPD sender 
 Lidar 515 cemara minimum detect distance is 50mm. Cameras give most accurate measurement results after temperature drift is stable. It is the best to start depth measurement after switching on the camera for 20 minutes. 
 #### realsense_depth.py
