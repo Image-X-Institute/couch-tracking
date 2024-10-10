@@ -1,5 +1,10 @@
-# Couch tracking and tumour motion replication 
-This project required Raspberry Pi and 1D motor. The motor is receiving tumour positional information via UDP from KIM and generate 1D corresponding motion in real-time.
+# Couch tracking and tumour motion compensation
+The couch tracking system receives tracking target positional information in real-time, performs 1-dimentional motion compensation to limit the motion range of the target. The aim of developing such a system is to further improving accuracy of beam delivery in radiation therapies. With the flexibility of commmunicating with various radiation therapy systems, and proven feasilibity of installing such a setup in clinical environment as an add-on (REACT), the couch tracking system has potential of providing a universal solution to further increasing threatment accuracy.
+
+The system consists of a 1-dimensional bullet actuator, sliding couch and a Raspberry Pi. Raspberry Pi receives the target tracking information and operate the motor to perform motion compensation accordingly. Motor is attached to the sliding couch where the tracking target is also on. 
+
+To develop and test the motion compensation performance in an non-clinical environment, 1D motion platform and depth camera were used to simulate tracking target motion and real-time positional data point stream. 
+
 
 KIM is responsible for obtaining tumour motions, and send the 3D information via UDP sender. The KIM and UDP sender relevant codes can be found in KIM project. 
 Code developed in Raspberry Pi was written in C++. It is responsible of receiving UDP signal, extracting the the signal and convert that into the 1D displacement that motor can travel accordingly. The motor operation code was developed from the previous 1D bullet-actuator application. 
