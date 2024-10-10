@@ -3,13 +3,20 @@ The couch tracking system receives tracking target positional information in rea
 
 The system consists of a 1-dimensional bullet actuator, sliding couch and a Raspberry Pi. Raspberry Pi receives the target tracking information and operate the motor to perform motion compensation accordingly. Motor is attached to the sliding couch where the tracking target is also on. 
 
-To develop and test the motion compensation performance in an non-clinical environment, 1D motion platform and depth camera were used to simulate tracking target motion and real-time positional data point stream. 
+To develop and test the motion compensation performance in an non-clinical environment, motion platforms (1-dimentional motion platform and 6 degree-of-freedom robotic arm) and depth camera were used to simulate tracking target motion and real-time positional data point stream. Motion platforms are placed on top of the couch which are able to replicate pre-recoreded tumour traces. Depth camera is responsible for detecting the depth measurements which are sent via UDP transmission to Raspberry Pi. 
 
+In clinical setup, couch tracking system is integrated with LINAC (liner accelerator) along with KIM () algorithm, processing tracking target positional information in real-time and perform compensation. 
+
+https://github.com/Image-X-Institute/IntERAct
 
 KIM is responsible for obtaining tumour motions, and send the 3D information via UDP sender. The KIM and UDP sender relevant codes can be found in KIM project. 
 Code developed in Raspberry Pi was written in C++. It is responsible of receiving UDP signal, extracting the the signal and convert that into the 1D displacement that motor can travel accordingly. The motor operation code was developed from the previous 1D bullet-actuator application. 
 Depth camera is used to verify the accuracy of the motor trace. Depth camera is also used to obtain real-time measurement of a target and letting the motor to replicated the measured motion. 
 
+## Getting Started 
+### Requirements
+- Couch tracking hardware
+  
 ## On Raspberry Pi
 ### UDP lisener and Motor operation
 ####  Raspberry Pi compiling-and-running
