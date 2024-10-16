@@ -70,7 +70,7 @@ bool stopMotion = false;
 
 
 void openLogFile() {
-    logFile.open("couch_only_25s_10mm_1.txt", ios::out);
+    logFile.open("POWH_LUNG_Typical_1.txt", ios::out);
     if (!logFile.is_open()) {
 	cerr << "Error opening log file!" << endl;
     }
@@ -293,8 +293,10 @@ void moveTillLimit(int Direction, int Speed) //this function moves the actuator 
 
 
 struct PositionData {
-	double x, y, z, gantry;
-	bool beam_hold;
+	double x, y, z; // Translatetional data
+	double rx, ry, rz; // Rotational data
+	double gantry; // Gantry angle
+	bool beam_hold; // True or false
 };
 
 PositionData readerKIM(const char *data_from_client){
@@ -303,19 +305,21 @@ PositionData readerKIM(const char *data_from_client){
 		memcpy(&position.x, data_from_client, sizeof(double));
 		memcpy(&position.y, data_from_client + sizeof(double), sizeof(double));
 		memcpy(&position.z, data_from_client + 2* sizeof(double), sizeof(double));
-		memcpy(&position.gantry, data_from_client + 3*sizeof(double), sizeof(double));
-		memcpy(&position.beam_hold, data_from_client + 4*sizeof(double), sizeof(bool));
-		
-		// Convert cm to mm
-		position.x *= 10.0;
-		position.y *= 10.0;
-		position.z *= 10.0;
+		memcpy(&position.rx, data_from_client, 3*sizeof(double));
+		memcpy(&position.ry, data_from_client + 4*sizeof(double), sizeof(double));
+		memcpy(&position.rz, data_from_client + 5* sizeof(double), sizeof(double));
+		memcpy(&position.gantry, data_from_client + 6*sizeof(double), sizeof(double));
+		memcpy(&position.beam_hold, data_from_client + 7*sizeof(double), sizeof(bool));
+
 		
 		
 		cout << "Received data: " << endl;
-		cout << "X =  " << position.x << endl;
-		cout << "Y =  " << position.y << endl;
-		cout << "Z =  " << position.z << endl;
+		cout << "X =  " << position.x << "mm" <<endl;
+		cout << "Y =  " << position.y << "mm" << endl;
+		cout << "Z =  " << position.z << "mm" << endl;
+		cout << "rX =  " << position.rx << "mm" <<endl;
+		cout << "rY =  " << position.ry << "mm" << endl;
+		cout << "rZ =  " << position.rz << "mm" << endl;
 		cout << "Gantry (in degree) =  " << position.gantry << endl;
 		cout << "Beam hold: " << (position.beam_hold ? "true" : "False") << endl;
 		
@@ -378,7 +382,7 @@ void receiveKIMUDPData(int socket, struct sockaddr_in* si_other, socklen_t* slen
 
 	    {
 		
-	    std::cout << "Timestamp: " << duration_cast<microseconds>(receive_time.time_since_epoch()).count() << ", Position: " << position.x << "mm" << std::endl;
+	    std::cout << "Timestamp: " << duration_cast<microseconds>(receive_time.time_since_epoch()).count() << ", Position: " << position.y << "mm" << std::endl;
 	    std::lock_guard<std::mutex> lock(queueMutex);
 	    latestPosition = position;
 	    newDataAvailable = true;
@@ -395,11 +399,11 @@ void receiveKIMUDPData(int socket, struct sockaddr_in* si_other, socklen_t* slen
 
 // Motion compensation algorithm
 void processMotorCommand(PositionData position, double offset) {
-    double target = position.x;
+    double target = position.y;
 
     
     if (abs(target - offset) <= 40) {
-        if (abs(target - offset) >= 1 ) {
+        if (abs(target - offset) >= 0 ) {
             double error = target - offset;
 	    
 	    std::cout << "error is: " << error << std::endl;
@@ -443,7 +447,7 @@ void motorControl() {
             newDataAvailable = false; // Notify that processing is finished
         } else {
 	    auto in_time = high_resolution_clock::now();
-	    logFile << duration_cast<microseconds>(in_time.time_since_epoch()).count() << " " <<latestPosition.x << " " << "N/A"  << " " << "SKIP" <<std::endl;
+	    logFile << duration_cast<microseconds>(in_time.time_since_epoch()).count() << " " <<latestPosition.y << " " << "N/A"  << " " << "SKIP" <<std::endl;
             lock.unlock();
         }
     }
