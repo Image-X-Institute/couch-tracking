@@ -35,7 +35,9 @@
 
 using namespace std;
 using namespace std::chrono;
+
 ofstream logFile; // Global file stream for logging
+
 int RPWM=26; //PWM signal right side
 int LPWM=23; 
 int _interrupt = 15;
@@ -55,9 +57,7 @@ int Direction; //-1 = retracting
 
 long pulseTotal=0; //stores number of pulses in one full extension/actuation
 
-double mean_depth = 0, current_position = 0;
 
-const double centreOfROM = 75; //mm
 
 struct timespec ts_now, ts_last;
 double  timeElapsed;
@@ -68,9 +68,9 @@ bool moving = false;
 bool stopMotion = false;
 
 
-
+/// Running log ////
 void openLogFile() {
-    logFile.open("couch_only_25s_10mm_1.txt", ios::out);
+    logFile.open("POWH_LUNG_Typical.txt", ios::out);
     if (!logFile.is_open()) {
 	cerr << "Error opening log file!" << endl;
     }
@@ -79,7 +79,9 @@ void openLogFile() {
 void closeLogFile() {
     logFile.close();
 }
+/////////////////////
 
+/// Motor Mechanism /////
 
 double TimeDiff(timespec Tstart, timespec Tend) //in us
 {
@@ -152,7 +154,7 @@ void driveToPoint(long setPoint)
 	    Direction = 1;
 	    driveActuator(Direction, Speed);
 	}
-	usleep(500);
+	//usleep(500);
     }
     driveActuator(0, Speed);
     moving = false;
@@ -220,7 +222,7 @@ void driveToPoint3(long setPoint) // For continuous movement, short motor operat
 			moving = false;
 			return;
 		}
-		//usleep(500);
+		//usleep(500); THIS MIGHT NOT NEED TO BE COMMENTED OUT
 	}
 
 	driveActuator(0, Speed);
@@ -290,8 +292,9 @@ void moveTillLimit(int Direction, int Speed) //this function moves the actuator 
     while(prevsensorVal !=sensorVal); //loop until all counts remain the same
     sensorVal = 0;
 }
+/////////////////////////
 
-
+/// UDP data structure //////
 struct PositionData {
 	double x, y, z; // Translatetional data
 	double rx, ry, rz; // Rotational data
@@ -328,7 +331,7 @@ PositionData readerKIM(const char *data_from_client){
 	
 }
 
-double home_pos = 50; // 50mm
+double home_pos = 50; // 80mm
 double adjusted;
 double offset;
 
@@ -377,17 +380,17 @@ void receiveKIMUDPData(int socket, struct sockaddr_in* si_other, socklen_t* slen
 		}
 		PositionData position = readerKIM(buf);
 		auto receive_time = high_resolution_clock::now();
-	        logFile << duration_cast<microseconds>(receive_time.time_since_epoch()).count() << " " << position.x <<std::endl;
+	    logFile << duration_cast<microseconds>(receive_time.time_since_epoch()).count() << " " << position.y <<std::endl;
 		
 
 	    {
 		
-	    std::cout << "Timestamp: " << duration_cast<microseconds>(receive_time.time_since_epoch()).count() << ", Position: " << position.x << "mm" << std::endl;
+	    std::cout << "Timestamp: " << duration_cast<microseconds>(receive_time.time_since_epoch()).count() << ", Position: " << position.y << "mm" << std::endl;
 	    std::lock_guard<std::mutex> lock(queueMutex);
 	    latestPosition = position;
 	    newDataAvailable = true;
 	}
-            dataCondition.notify_one();
+        dataCondition.notify_one();
         
     }
 }	
@@ -399,7 +402,7 @@ void receiveKIMUDPData(int socket, struct sockaddr_in* si_other, socklen_t* slen
 
 // Motion compensation algorithm
 void processMotorCommand(PositionData position, double offset) {
-    double target = position.x;
+    double target = position.y;
 
     
     if (abs(target - offset) <= 40) {
@@ -429,10 +432,7 @@ void processMotorCommand(PositionData position, double offset) {
     }
 }
 
- 
-
 // Motor control thread function
-// Only execute if latest data is available 
 void motorControl() {
     while (true) {
         std::unique_lock<std::mutex> lock(queueMutex);
@@ -450,7 +450,7 @@ void motorControl() {
             newDataAvailable = false; // Notify that processing is finished
         } else {
 	    auto in_time = high_resolution_clock::now();
-	    logFile << duration_cast<microseconds>(in_time.time_since_epoch()).count() << " " <<latestPosition.x << " " << "N/A"  << " " << "SKIP" <<std::endl;
+	    logFile << duration_cast<microseconds>(in_time.time_since_epoch()).count() << " " <<latestPosition.y << " " << "N/A"  << " " << "SKIP" <<std::endl;
             lock.unlock();
         }
     }
@@ -508,6 +508,7 @@ int main() {
 	cout<< "Move motor to set home position " << home_pos<< "mm" <<endl;
 	Move2(home_pos);
 	usleep(500);
+	adjusted = home_pos;
 	//////////////////////
 	cout << "Enter the tracking object desired position: ";
 	cin >> offset; // Offset, the initial home/zero position of the tracking target, also where we would like the object to stay 
