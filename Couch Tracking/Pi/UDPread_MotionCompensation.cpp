@@ -36,21 +36,22 @@ using namespace std;
 using namespace std::chrono;
 
 ofstream logFile; // Global file stream for logging
+
 int RPWM=26; //PWM signal right side
 int LPWM=23; 
 int _interrupt = 15;
 
 volatile long sensorVal=0; 
 volatile int stepsPerMill = 155;
+volatile long lastDebounceTime_0=0; 
 
 int Speed = 1023; //choose any speed in the range [0, 1023]
 double falsepulseDelay = 10; //10us delay
+
 int Direction; //-1 = retracting, 0 = stopped, 1 = extending
 
 long pulseTotal=0; //stores number of pulses in one full extension/actuation
-double mean_depth = 0, current_position = 0;
 
-double timeElapsed;
 
 bool verbose = false;
 bool quitFlag = false;
@@ -62,11 +63,28 @@ double adjusted;
 double offset;
 
 struct timespec ts_now, ts_last;
+double timeElapsed;
 
-bool newDataAvailable = false;
-bool processingMotorCommand = false;
+
 std::mutex queueMutex;
 std::condition_variable dataCondition;
+bool newDataAvailable = false;
+bool processingMotorCommand = false;
+
+/// Running log ////
+
+void openLogFile() {
+    logFile.open("Pi couch running weighted demo.txt", ios::out);
+    if (!logFile.is_open()) {
+	cerr << "Error opening log file!" << endl;
+    }
+}
+
+void closeLogFile() {
+    logFile.close();
+}
+////////////////////////
+
 
 /// Data Structures for Depth and Positional Data
 struct timewDepth {
@@ -87,17 +105,6 @@ std::queue<PositionData> positionQueue;
 timewDepth latestDepth;
 PositionData latestPosition;
 
-// General utility functions
-void openLogFile(string filename) {
-    logFile.open(filename, ios::out);
-    if (!logFile.is_open()) {
-        cerr << "Error opening log file!" << endl;
-    }
-}
-
-void closeLogFile() {
-    logFile.close();
-}
 
 double TimeDiff(timespec Tstart, timespec Tend) { // in us
     return 1e6*Tend.tv_sec + 1e-3*Tend.tv_nsec - (1e6*Tstart.tv_sec + 1e-3*Tstart.tv_nsec);
@@ -139,6 +146,41 @@ void driveActuator(int Direction, int Speed) {
             pwmWrite(leftPWM, Speed);
             break;
     }
+}
+
+void driveToPoint2(long setPoint)
+{
+	moving = true;
+	// Define the start time and the timeout period ( in microseconds)
+	long long start_time = micros();
+	long long timeout = 8000000; // 8 seconds timeout
+
+	while (abs(sensorVal - setPoint) > 66 && moving) // the motor usually takes ~66 steps between telling it to stop and it actually stopping
+	{
+		if (setPoint < (sensorVal)) //addition gives buffer to prevent actuator from rapidly vibrating due to noisy data inputs
+		{
+			Direction = -1;
+			driveActuator(Direction, Speed);
+		}
+		else if (setPoint > (sensorVal))
+		{
+			Direction = 1;
+			driveActuator(Direction, Speed);
+		}
+		// check if the operation has exceeded the timeout period
+		if(micros() - start_time > timeout)
+		{
+			cout << "Operation timeout. Stopping the motor" << endl;
+			driveActuator(0, Speed);
+			moving = false;
+			return;
+		}
+		usleep(500);
+	}
+
+	driveActuator(0, Speed);
+	moving = false;
+	cout << "Set point: " << setPoint << "\tActuator reading: " << sensorVal << endl;
 }
 
 void driveToPoint3(long setPoint) // For continuous movement, short motor operation timeout duration
@@ -227,6 +269,7 @@ void moveTillLimit(int Direction, int Speed) //this function moves the actuator 
 // Depth Data Processing
 void processMotorCommandDepth(timewDepth info, double offset) {
     double depth_mm = info.depth / 100;
+
     if (abs(depth_mm - offset) <= 40) {
         if (abs(depth_mm - offset) >= 0) {
             double error = depth_mm - offset;
@@ -282,12 +325,7 @@ void motorControl(bool isDepth) {
     }
 }
 
-struct timewDepth {
-	float time;
-	float depth;
-	
-};
-	
+
 timewDepth reader1D(const char *data_from_client){
 	timewDepth info;
 	
@@ -307,10 +345,10 @@ void receiveUDPDepthData(int socket, struct sockaddr_in* si_other, socklen_t* sl
             cout << "Error receiving depth data" << endl;
             continue;
         }
-        timewDepth info;
-        memcpy(&info.time, buf + 1, sizeof(float));
-        memcpy(&info.depth, buf + 6, sizeof(float));
-        logFile << info.time << " " << info.depth / 100 << endl;
+        timewDepth info = reader1D(buf);
+        auto receive_time = high_resolution_clock::now();
+	    logFile << info.time<<" " << duration_cast<microseconds>(receive_time.time_since_epoch()).count() << " " << info.depth/100 <<std::endl;
+       
         std::lock_guard<std::mutex> lock(queueMutex);
         latestDepth = info;
         newDataAvailable = true;
@@ -318,12 +356,6 @@ void receiveUDPDepthData(int socket, struct sockaddr_in* si_other, socklen_t* sl
     }
 }
 
-struct PositionData {
-	double x, y, z; // Translatetional data
-	double rx, ry, rz; // Rotational data
-	double gantry; // Gantry angle
-	bool beam_hold; // True or false
-};
 
 PositionData readerKIM(const char *data_from_client){
 		PositionData position;
@@ -355,6 +387,26 @@ PositionData readerKIM(const char *data_from_client){
 }
 
 // UDP Receive Function for Position
+void PrintThisIPAddress()
+{
+    struct ifaddrs *ifap, *ifa;
+    struct sockaddr_in *sa;
+    char *addr;
+    getifaddrs(&ifap);
+    for (ifa = ifap; ifa; ifa = ifa->ifa_next)
+    {
+	if (ifa->ifa_addr && ifa->ifa_addr->sa_family==AF_INET)
+	{
+	    sa = (struct sockaddr_in *) ifa->ifa_addr; 
+	    addr = inet_ntoa(sa->sin_addr);
+	    if (strcmp(ifa->ifa_name,"wlan0") == 0)
+		cout << "IP Address for UDP: " << addr << " (wlan0)" << endl;
+	    else if (strcmp(ifa->ifa_name,"eth0") == 0)
+		cout << "IP Address for UDP: " << addr << " (eth0)" << endl;
+	}
+    }
+}
+
 void receiveKIMUDPData(int socket, struct sockaddr_in* si_other, socklen_t* slen) {
     char buf[SIZE];
     while (true) {
@@ -363,10 +415,8 @@ void receiveKIMUDPData(int socket, struct sockaddr_in* si_other, socklen_t* slen
             cout << "Error receiving KIM data" << endl;
             continue;
         }
-        PositionData position;
-        memcpy(&position.x, buf, sizeof(double));
-        memcpy(&position.y, buf + sizeof(double), sizeof(double));
-        memcpy(&position.z, buf + 2 * sizeof(double), sizeof(double));
+        PositionData position = readerKIM(buf);
+
         logFile << duration_cast<microseconds>(high_resolution_clock::now().time_since_epoch()).count() << " " << position.y << endl;
         std::lock_guard<std::mutex> lock(queueMutex);
         latestPosition = position;
@@ -380,10 +430,43 @@ int main() {
     wiringPiSetup();
     pinMode(RPWM, PWM_OUTPUT);
     pinMode(LPWM, PWM_OUTPUT);
+    pwmWrite(RPWM, 0);
+    pwmWrite(LPWM, 0);
     pinMode(_interrupt, INPUT);
     pullUpDnControl(_interrupt, PUD_DOWN);
     wiringPiISR(_interrupt, INT_EDGE_RISING, &myInterrupt);
 
+    pulseTotal = 0;
+
+    cout << "Drive motor to home" << endl;
+    Direction = -1;
+    moveTillLimit(Direction, Speed);
+    usleep(500);
+    PrintThisIPAddress();
+    
+    cout<< "Move motor to set home position " << home_pos<< "mm" <<endl;
+	Move2(home_pos);
+	usleep(500);
+
+    int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    sockaddr_in si_me, si_other;
+    socklen_t slen = sizeof(si_other);
+
+    if ((s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1) {
+		cout << "Failed to create receive socket" << endl;
+		return -1;
+	}
+
+    memset((char *) &si_me, 0, sizeof(si_me));
+    si_me.sin_family = AF_INET;
+    si_me.sin_port = htons(PORT);
+    si_me.sin_addr.s_addr = inet_addr("192.168.8.2"); // Give IP address here
+
+    if (bind(s, (struct sockaddr *) &si_me, sizeof(si_me)) == -1) {
+        cout << "Bind failed" << endl;
+        return -1;
+    }
+	cout << "Socket created, UDP listening ... " << endl;
     // Ask the user which mode to operate in
     cout << "Select data type for operation (1: Depth Data, 2: Positional Data): ";
     int choice;
@@ -391,25 +474,45 @@ int main() {
 
     bool isDepth = (choice == 1);
     if (isDepth) {
-        openLogFile("DepthDataLog.txt");
         cout << "Operating in Depth Data Mode" << endl;
+        std::cout << "Gathering 30 frames to calculate offset..." << std::endl;
+    
+        // Variables to calculate average
+        std::vector<double> depths;
+        depths.reserve(30);
+        // Wait for 30 frames of data
+        while (depths.size() < 30) {
+                char buf[SIZE];
+                memset(buf, '\0', SIZE);
+                
+                if (recvfrom(s, buf, SIZE, 0, (struct sockaddr *) &si_other, (socklen_t *) &slen) == -1) {
+                    std::cout << "Error in receiving data" << std::endl;
+                    continue;
+                }
+                
+                if (buf[0] == 'c' && buf[5] == 't') {
+                    timewDepth info = reader1D(buf);
+                    double depth_mm = info.depth / 100;
+                    depths.push_back(depth_mm);
+                    std::cout << "Received frame " << depths.size() << ": Depth = " << depth_mm << " mm" << std::endl;
+            }
+        }
+        // Calculate average depth
+        double sum = std::accumulate(depths.begin(), depths.end(), 0.0);
+        double average_depth = sum / depths.size();
+        
+            
+        // Use average depth as the offset
+        offset = average_depth;
+        std::cout << "Calculated offset: " << offset << " mm" << std::endl;
+        adjusted = home_pos;
+        openLogFile("DepthDataLog.txt");
+        
     } else {
         openLogFile("PositionDataLog.txt");
         cout << "Operating in Positional Data Mode" << endl;
-    }
-
-    int s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    sockaddr_in si_me, si_other;
-    socklen_t slen = sizeof(si_other);
-
-    memset((char *) &si_me, 0, sizeof(si_me));
-    si_me.sin_family = AF_INET;
-    si_me.sin_port = htons(PORT);
-    si_me.sin_addr.s_addr = inet_addr("192.168.8.2");
-
-    if (bind(s, (struct sockaddr *) &si_me, sizeof(si_me)) == -1) {
-        cout << "Bind failed" << endl;
-        return -1;
+        adjusted = home_pos;
+        offset = 0;
     }
 
     std::thread udpThread(isDepth ? receiveUDPDepthData : receiveKIMUDPData, s, &si_other, &slen);

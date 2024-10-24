@@ -70,7 +70,7 @@ bool stopMotion = false;
 
 
 void openLogFile() {
-    logFile.open("POWH_LUNG_Typical_1.txt", ios::out);
+    logFile.open("couch_only_25s_10mm_1.txt", ios::out);
     if (!logFile.is_open()) {
 	cerr << "Error opening log file!" << endl;
     }
@@ -328,7 +328,7 @@ PositionData readerKIM(const char *data_from_client){
 	
 }
 
-double home_pos = 50; // 80mm
+double home_pos = 50; // 50mm
 double adjusted;
 double offset;
 
@@ -382,7 +382,7 @@ void receiveKIMUDPData(int socket, struct sockaddr_in* si_other, socklen_t* slen
 
 	    {
 		
-	    std::cout << "Timestamp: " << duration_cast<microseconds>(receive_time.time_since_epoch()).count() << ", Position: " << position.y << "mm" << std::endl;
+	    std::cout << "Timestamp: " << duration_cast<microseconds>(receive_time.time_since_epoch()).count() << ", Position: " << position.x << "mm" << std::endl;
 	    std::lock_guard<std::mutex> lock(queueMutex);
 	    latestPosition = position;
 	    newDataAvailable = true;
@@ -399,7 +399,7 @@ void receiveKIMUDPData(int socket, struct sockaddr_in* si_other, socklen_t* slen
 
 // Motion compensation algorithm
 void processMotorCommand(PositionData position, double offset) {
-    double target = position.y;
+    double target = position.x;
 
     
     if (abs(target - offset) <= 40) {
@@ -429,7 +429,10 @@ void processMotorCommand(PositionData position, double offset) {
     }
 }
 
+ 
+
 // Motor control thread function
+// Only execute if latest data is available 
 void motorControl() {
     while (true) {
         std::unique_lock<std::mutex> lock(queueMutex);
@@ -447,7 +450,7 @@ void motorControl() {
             newDataAvailable = false; // Notify that processing is finished
         } else {
 	    auto in_time = high_resolution_clock::now();
-	    logFile << duration_cast<microseconds>(in_time.time_since_epoch()).count() << " " <<latestPosition.y << " " << "N/A"  << " " << "SKIP" <<std::endl;
+	    logFile << duration_cast<microseconds>(in_time.time_since_epoch()).count() << " " <<latestPosition.x << " " << "N/A"  << " " << "SKIP" <<std::endl;
             lock.unlock();
         }
     }
