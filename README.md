@@ -1,16 +1,10 @@
 # Couch tracking and tumour motion compensation
-The couch tracking system receives tracking target positional information in real-time, performs 1-dimentional motion compensation to limit the motion range of the target. The aim of developing such a system is to further improving accuracy of beam delivery in radiation therapies. With the flexibility of commmunicating with various radiation therapy systems, and proven feasilibity of installing such a setup in clinical environment as an add-on (REACT), the couch tracking system has potential of providing a universal solution to further increasing threatment accuracy.
+The couch tracking system receives tracking target positional information in real-time, performs 1-dimentional motion compensation in the superior-inferior direction to compensate for the motion of the target. The aim of developing such a system is to improve efficiency and accuracy of beam delivery during radiation therapy. With the flexibility of commmunicating with various radiation therapy systems, and proven feasilibity of installing such a setup in clinical environment, the couch tracking system has potential of providing a universal solution to real-time adaptive radiation therapy. 
 
-The system consists of a 1-dimensional bullet actuator, sliding couch and a Raspberry Pi. Raspberry Pi receives the target tracking information and operate the motor to perform motion compensation accordingly. Motor is attached to the sliding couch where the tracking target is also on. 
+The system consists of a 1-dimensional bullet actuator, sliding couch and a Raspberry Pi. Motion platforms are placed on top of the couch which are able to replicate pre-recorded tumour traces. Any real-time tumour motion monitoring system including KIM/Depth camera sends this motion information via UDP transmission to a Raspberry Pi. Code developed in Raspberry Pi was written in C++. It is responsible of receiving UDP signal, extracting the the signal and convert that into the 1D displacement that motor can travel accordingly. Raspberry Pi receives the target motion information and operates the motor to perform motion compensation accordingly.  
 
-To develop and test the motion compensation performance in an non-clinical environment, motion platforms (1-dimentional motion platform and 6 degree-of-freedom robotic arm) and depth camera were used to simulate tracking target motion and real-time positional data point stream. Motion platforms are placed on top of the couch which are able to replicate pre-recoreded tumour traces. Depth camera is responsible for detecting the depth measurements which are sent via UDP transmission to Raspberry Pi. 
+To develop and test the motion compensation performance in an non-clinical environment, motion platforms (1-dimentional motion platform and 6 degree-of-freedom robotic arm) and depth camera were used to simulate tracking target motion and real-time positional data point stream. 
 
-In clinical setup, couch tracking system is integrated with LINAC (liner accelerator) along with KIM () algorithm, processing tracking target positional information in real-time and perform compensation. 
-
-https://github.com/Image-X-Institute/IntERAct
-
-KIM is responsible for obtaining tumour motions, and send the 3D information via UDP sender. The KIM and UDP sender relevant codes can be found in KIM project. 
-Code developed in Raspberry Pi was written in C++. It is responsible of receiving UDP signal, extracting the the signal and convert that into the 1D displacement that motor can travel accordingly. The motor operation code was developed from the previous 1D bullet-actuator application. 
 Depth camera is used to verify the accuracy of the motor trace. Depth camera is also used to obtain real-time measurement of a target and letting the motor to replicated the measured motion. 
 
 ## Getting Started 
