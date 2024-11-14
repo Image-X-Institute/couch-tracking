@@ -11,7 +11,7 @@ Depth camera is used to verify the accuracy of the motor trace. Depth camera is 
 ### Requirements
 - Couch tracking hardware
   1. Bullet actuator (https://www.firgelliauto.com.au/products/bullet-series-50-cal-linear-actuators)
-  2. Raspberry Pi Model 4B with 32GB SD card (https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)
+  2. Raspberry Pi Model 4B 8GB RAM with 32GB SD card (https://www.raspberrypi.com/products/raspberry-pi-4-model-b/)
   3. Motor power supply (https://au.rs-online.com/web/p/switching-power-supplies/9163920)
   4. Motor DC drive (https://www.phippselectronics.com/product/bts7960-43a-double-dc-stepper-motor-driver-h-bridge-pwm/?gad_source=1&gclid=EAIaIQobChMIh7eRzd-HiAMV59oWBR3aBBGWEAQYASABEgKMPvD_BwE)
   5. Sliding couch
