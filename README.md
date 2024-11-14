@@ -20,6 +20,11 @@ Depth camera is used to verify the accuracy of the motor trace. Depth camera is 
   8. Intel realsense L515, D4315i depth camera
 - Motion platform hardware
   https://github.com/Image-X-Institute/IntERAct
+  1. Tracking target (flat and non-reflective material for depth measurement. phantom with internal markers for KIM).
+  2. Robot connection with couch surface and the phantom.
+- UDP communication
+  1. Router (For private, fixed IP address and uninterrupted communication bewteen couch and the end that track the moving object.)
+  2. Ethernet cable      
 - Software
   1. Microsoft Visual Studio 2022
   2. Python 3.7 or above
@@ -60,11 +65,13 @@ User gets to select two ROIs with cursor on depth camera frame. After two ROIs b
 ## Future work
 
 ## Authors
-Ann Yan, Dr. Chandrima Sengupta
+Ann Yan, Dr. Chandrima Sengupta, Prof. Paul Keall
 
 ## Contact
 ann.yan@sydney.edu.au
 
 chandrima.sengupta@sydney.edu.au
+
+paul.keall@sydney.edu.au
 
 ## Acknowledgements
