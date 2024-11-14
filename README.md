@@ -15,8 +15,9 @@ Depth camera is used to verify the accuracy of the motor trace. Depth camera is 
   3. Motor power supply (https://au.rs-online.com/web/p/switching-power-supplies/9163920)
   4. Motor DC drive (https://www.phippselectronics.com/product/bts7960-43a-double-dc-stepper-motor-driver-h-bridge-pwm/?gad_source=1&gclid=EAIaIQobChMIh7eRzd-HiAMV59oWBR3aBBGWEAQYASABEgKMPvD_BwE)
   5. Sliding couch
-  6. Motor holder and couch surface connector
-  7. Intel realsense L515, D4315i depth camera
+     Scale down couch is made of PMMA surface and ball bearing. Full size couch is made of PVC. CAD done by Image X Institute. 
+  7. Motor holder and couch surface connector
+  8. Intel realsense L515, D4315i depth camera
 - Motion platform hardware
   https://github.com/Image-X-Institute/IntERAct
 - Software
