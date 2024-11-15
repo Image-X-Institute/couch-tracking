@@ -34,10 +34,14 @@ Depth camera is used to verify the accuracy of the motor trace. Depth camera is 
 ### UDP lisener and Motor operation
 ####  Raspberry Pi compiling-and-running
 
-1. Complie
-- g++ -o [filename] [filename.cpp] -Wall -lwiringPi -std=c++14 -pthread
+1. Compile
+- g++ -o [executable filename] [filename.cpp(code needed to be compiled)] -Wall -lwiringPi -std=c++14 -pthread
+
+Compile code on console. The executable and the c++ code name need to be specified. Needed libraries should be included.
 2. Running
-- sudo ./[filename]
+- sudo ./[executable filename]
+
+Run the executable on console
 
 
 #### bulletConsole_discrete.cpp
