@@ -6,18 +6,18 @@ Code developed in Raspberry Pi was written in C++. It is responsible of receivin
 Depth camera is used to verify the accuracy of the motor trace. Depth camera is also used to obtain real-time measurement of a target and letting the motor to replicated the measured motion. 
 
 ## On Raspberry Pi
-### UDP lisener and Motor operation
-####  Raspberry Pi compiling-and-running
-
+### C++ code compile and running
 1. Complie
 - g++ -o [filename] [filename.cpp] -Wall -lwiringPi -std=c++14 -pthread
 2. Running
 - sudo ./[filename]
 
-
+### Function testing 
+Code under Testing code folder, designated for unit function testing. 
 #### bulletConsole_discrete.cpp
-Let the motor run to specific position by input the depth information on console. The code can be used for testing the motor functionality for debugging purpose.
+Motor travels to positions by given integer from console. The code can be used for testing the motor functionality for debugging purpose.
 #### motor_runbytrace.cpp
+User enters motion trace name which contains timestamp and displacment information. 
 Asking the trace you would like to read, and let motor run continuously according to the trace given. 
 #### UDPreader_discrete.cpp
 It listens to UDP signal and move the motor to the given a position accordingly (discrete motion). The UDP sender is written in Python. The code is used for testing the UDP transmission and whether motor can comprehend the incoming data point and execute accordingly.
