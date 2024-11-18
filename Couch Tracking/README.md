@@ -16,25 +16,33 @@ Depth camera is used to verify the accuracy of the motor trace. Depth camera is 
 Code under Testing code folder, designated for unit function testing. 
 
 #### bulletConsole_discrete.cpp
-Motor travels to positions by given integer from console. The code can be used for testing the motor functionality for debugging purpose.
+Motor travels to positions by given integer from console. One integer can be given each time. The code can be used for testing the motor functionality for debugging purpose.
 
 #### motor_runbytrace.cpp
 User enters motion trace name which contains displacment information. Pi reads the file and operate the motor to replicate the trace. Motor runs at maximum velocity all the time. This is for testing motor capability of running continuous motion.
 
 #### UDPreader_discrete.cpp
 Pi establish UDP communication with another device that share the same IP address and port number. It listens to UDP signal and move the motor to the given a position accordingly (discrete motion). The UDP sender is written in Python. The code is used for testing the UDP transmission and whether motor can comprehend the incoming data point and execute accordingly.
+
 #### UDPreader_trace.cpp
 Listens to KIM UDPsender, and extracts 1D information, moves the motor in opposite direction.
-#### UDPreader_realtime_2.cpp
-Listen to UDP transmission that contains 1D depth measurement. Motor home position is set to 50mm. Offset value specify the distance bewteen depth camera and tracking object. Motor begins motion compensation with the given offset as home position. Home position and offset values can be changed and adapt to in practice setup. UDP listening and motor motion are seperated into two threads. Motor only execute the latest coming data point and ignore others while it is in operation.
+
 #### UDPread_KIMnoMotion.cpp
-Listening to the KIM UDP sender and print the received data point on console. 
+Listening to the KIM UDP sender and print the received data point on console. This is for testing whether the UDP communication between motor and KIM is working properly. 
+
 #### UDPreader_KIMreplicating.cpp
-Listening to the KIM UDP sender and motor replicating 1D motion. The dimensional of the motion that replicated by motor can be specified. This is for testing in-lab, to see if motor is able to comprehend in-coming data point. 
+Listening to the KIM UDP sender and motor replicating 1D motion. The dimensional of the motion that replicated by motor can be specified. This is for testing in-lab, to see if motor is able to comprehend in-coming data point and run properly. This code can also be used for system latency testing. 
+
+### Motion compensation 
+#### UDPreader_Depth.cpp
+Listen to UDP transmission that contains 1D depth measurement. Motor home position is set to 50mm. Offset value specify the distance bewteen depth camera and tracking object. Motor begins motion compensation with the given offset as home position. Home position and offset values can be changed and adapt to in practice setup. UDP listening and motor motion are seperated into two threads. Motor only execute the latest coming data point and ignore others while it is in operation.
+
 #### UDPreader_KIM.cpp
 Listening to KIM UDP sender and perform motion compensation. This is meant to use in clincial environment. Robotic arm is on top of the couch holding a phantom. KV images are collected and processed by KIM. The real-time positional data points are sent via UDP transmission, received by Raspberry Pi which operate the motor to perform motion compensation. 
-#### UDPread_MotionCompensation_slow.cpp
+#### UDPread_MotionCompensation.cpp
 Combine code reads depth measurement and KIM data, also slow down the couch response to better adapt to the KIM latency. Motor moves back to zero position, and then moves to isocenter. User can select incoming data type from console. For depth measurement, the code automatically starts receiving measurements and collect the first 30 frames to calculate the isocenter position. For KIM data, the isocenter value is set to 0.  
+
+
 ## UPD sender 
 Lidar 515 cemara minimum detect distance is 50mm. Cameras give most accurate measurement results after temperature drift is stable. It is the best to start depth measurement after switching on the camera for 20 minutes. 
 #### realsense_depth.py
