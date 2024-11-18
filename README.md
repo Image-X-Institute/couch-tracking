@@ -5,6 +5,7 @@ The system consists of a 1-dimensional bullet actuator, sliding couch and a Rasp
 
 To develop and test the motion compensation performance in an non-clinical environment, motion platforms (1-dimentional motion platform and 6 degree-of-freedom robotic arm) and depth camera were used to simulate tracking target motion and real-time positional data point stream. 
 
+For the system overview, see Couch tracking flowchart.pptx
 
 
 ## HARDWARE 
