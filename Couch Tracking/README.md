@@ -34,11 +34,12 @@ Listening to the KIM UDP sender and print the received data point on console. Th
 Listening to the KIM UDP sender and motor replicating 1D motion. The dimensional of the motion that replicated by motor can be specified. This is for testing in-lab, to see if motor is able to comprehend in-coming data point and run properly. This code can also be used for system latency testing. 
 
 ### Motion compensation 
-#### UDPreader_Depth.cpp
+#### UDPread_Depth.cpp
 Listen to UDP transmission that contains 1D depth measurement. Motor home position is set to 50mm. Offset value specify the distance bewteen depth camera and tracking object. Motor begins motion compensation with the given offset as home position. Home position and offset values can be changed and adapt to in practice setup. UDP listening and motor motion are seperated into two threads. Motor only execute the latest coming data point and ignore others while it is in operation.
 
-#### UDPreader_KIM.cpp
-Listening to KIM UDP sender and perform motion compensation. This is meant to use in clincial environment. Robotic arm is on top of the couch holding a phantom. KV images are collected and processed by KIM. The real-time positional data points are sent via UDP transmission, received by Raspberry Pi which operate the motor to perform motion compensation. 
+#### UDPread_KIM.cpp
+Listening to KIM UDP sender and perform motion compensation. This is meant to use in clincial environment. Robotic arm is on top of the couch holding a phantom. KV images are collected and processed by KIM. The real-time positional data points are sent via UDP transmission, received by Raspberry Pi which operate the motor to perform motion compensation. The couch response frequency can be adjusted for adapt to the KIM latency. This is done by changing the total sleep time after motor finishes its current movement. Longer sleeping time means slower response rate.
+
 #### UDPread_MotionCompensation.cpp
 Combine code reads depth measurement and KIM data, also slow down the couch response to better adapt to the KIM latency. Motor moves back to zero position, and then moves to isocenter. User can select incoming data type from console. For depth measurement, the code automatically starts receiving measurements and collect the first 30 frames to calculate the isocenter position. For KIM data, the isocenter value is set to 0.  
 
