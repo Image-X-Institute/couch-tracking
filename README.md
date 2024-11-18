@@ -29,7 +29,18 @@ Depth camera is used to verify the accuracy of the motor trace. Depth camera is 
   1. Microsoft Visual Studio 2022
   2. Python 3.7 or above
   3. Realsense 2 library (If running depth camera)
-  
+
+
+## HARDWARE 
+### Couch
+### Motor
+### Motion platform
+### Target tracking tools
+
+## SOFTWARE
+### Couch tracking code
+### motion platform control and input trace
+### Target tracking methods
 ## On Raspberry Pi (MOVE TO COUCH TRACKING FOLDER)
 ### UDP lisener and Motor operation
 ####  Raspberry Pi compiling-and-running
