@@ -14,13 +14,15 @@ Depth camera is used to verify the accuracy of the motor trace. Depth camera is 
 
 ### Function testing 
 Code under Testing code folder, designated for unit function testing. 
+
 #### bulletConsole_discrete.cpp
 Motor travels to positions by given integer from console. The code can be used for testing the motor functionality for debugging purpose.
+
 #### motor_runbytrace.cpp
-User enters motion trace name which contains timestamp and displacment information. 
-Asking the trace you would like to read, and let motor run continuously according to the trace given. 
+User enters motion trace name which contains displacment information. Pi reads the file and operate the motor to replicate the trace. Motor runs at maximum velocity all the time. This is for testing motor capability of running continuous motion.
+
 #### UDPreader_discrete.cpp
-It listens to UDP signal and move the motor to the given a position accordingly (discrete motion). The UDP sender is written in Python. The code is used for testing the UDP transmission and whether motor can comprehend the incoming data point and execute accordingly.
+Pi establish UDP communication with another device that share the same IP address and port number. It listens to UDP signal and move the motor to the given a position accordingly (discrete motion). The UDP sender is written in Python. The code is used for testing the UDP transmission and whether motor can comprehend the incoming data point and execute accordingly.
 #### UDPreader_trace.cpp
 Listens to KIM UDPsender, and extracts 1D information, moves the motor in opposite direction.
 #### UDPreader_realtime_2.cpp
