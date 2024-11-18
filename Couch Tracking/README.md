@@ -8,9 +8,9 @@ Depth camera is used to verify the accuracy of the motor trace. Depth camera is 
 ## On Raspberry Pi
 ### C++ code compile and running
 1. Complie
-- g++ -o [filename] [filename.cpp] -Wall -lwiringPi -std=c++14 -pthread
+- g++ -o [filename(.exe filename)] [filename.cpp(c++ file to be compiled)] -Wall -lwiringPi -std=c++14 -pthread
 2. Running
-- sudo ./[filename]
+- sudo ./[filename(.exe filename)]
 
 ### Function testing 
 Code under Testing code folder, designated for unit function testing. 
@@ -22,7 +22,7 @@ Motor travels to positions by given integer from console. One integer can be giv
 User enters motion trace name which contains displacment information. Pi reads the file and operate the motor to replicate the trace. Motor runs at maximum velocity all the time. This is for testing motor capability of running continuous motion.
 
 #### UDPreader_discrete.cpp
-Pi establish UDP communication with another device that share the same IP address and port number. It listens to UDP signal and move the motor to the given a position accordingly (discrete motion). The UDP sender is written in Python. The code is used for testing the UDP transmission and whether motor can comprehend the incoming data point and execute accordingly.
+Pi establish UDP communication with another device that share the same IP address and port number. It listens to UDP signal and move the motor to the given a position accordingly (discrete motion, one input at a time). The UDP sender is written in Python. The code is used for testing the UDP transmission and whether motor can comprehend the incoming data point and execute accordingly.
 
 #### UDPreader_trace.cpp
 Listens to KIM UDPsender, and extracts 1D information, moves the motor in opposite direction.
