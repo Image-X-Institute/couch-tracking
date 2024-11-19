@@ -30,37 +30,41 @@
 #include "logger.cpp"
 
 #define SIZE 512
-#define PORT 1400
+#define PORT 1400 // UDP communication port number
+const char* ipAddress = "192.168.8.2"; // This address is pre-set with router
 
 using namespace std;
 using namespace std::chrono;
 
-ofstream logFile; // Global file stream for logging
+ofstream logFile; // Global file stream for logging, motor running log
 
 int RPWM=26; //PWM signal right side
-int LPWM=23; 
+int LPWM=23; //PWM signal right side
 int _interrupt = 15;
 
-volatile long sensorVal=0; 
-volatile int stepsPerMill = 155;
+volatile long sensorVal=0; // Hall effect sensor value
+volatile int stepsPerMill = 155; // Rotational step versus motor linear displacement
 volatile long lastDebounceTime_0=0; 
 
 int Speed = 1023; //choose any speed in the range [0, 1023]
 double falsepulseDelay = 10; //10us delay
 
-int Direction; //-1 = retracting, 0 = stopped, 1 = extending
+int Direction; // Motor travel direction
+//-1 = retracting, 0 = stopped, 1 = extending
 
 long pulseTotal=0; //stores number of pulses in one full extension/actuation
 
-
+/// processMotorCommand thread parameter ///
 bool verbose = false;
 bool quitFlag = false;
 bool moving = false;
 bool stopMotion = false;
 
+/// MOTION COMPENSATION PARAMETER ///
 double home_pos = 50; // Default home position
-double adjusted;
-double offset;
+double adjusted; // Couch position to be updated 
+double offset; 
+//////////////////
 
 struct timespec ts_now, ts_last;
 double timeElapsed;
@@ -72,8 +76,8 @@ bool newDataAvailable = false;
 bool processingMotorCommand = false;
 
 /// Running log ////
-
-void openLogFile() {
+// Log motor running information
+void openLogFile() { 
     logFile.open("depth_latency_UDP.txt", ios::out);
     if (!logFile.is_open()) {
 	cerr << "Error opening log file!" << endl;
@@ -85,13 +89,14 @@ void closeLogFile() {
 }
 ////////////////////////
 
-
-/// Data Structures for Depth and Positional Data
+/// UDP data format ///
+/// Data Structures for Depth measurement
 struct timewDepth {
     float time;
     float depth;
 };
 
+// Data structure for KIM data
 struct PositionData {
     double x, y, z; // Translational data
     double rx, ry, rz; // Rotational data
@@ -104,8 +109,9 @@ std::queue<timewDepth> depthQueue;
 std::queue<PositionData> positionQueue;
 timewDepth latestDepth;
 PositionData latestPosition;
+//////////////////////
 
-
+/// Couch motor operation ///
 double TimeDiff(timespec Tstart, timespec Tend) { // in us
     return 1e6*Tend.tv_sec + 1e-3*Tend.tv_nsec - (1e6*Tstart.tv_sec + 1e-3*Tstart.tv_nsec);
 }
@@ -128,6 +134,7 @@ void Stop() {
     newMessage("Motion stopped");
 }
 
+// Run motor by specify the direction
 void driveActuator(int Direction, int Speed) {
     int rightPWM = RPWM;
     int leftPWM = LPWM;
@@ -148,6 +155,8 @@ void driveActuator(int Direction, int Speed) {
     }
 }
 
+// Let motor runs to a set location
+// Added timeout to prevent motor runs to limit
 void driveToPoint2(long setPoint)
 {
 	moving = true;
@@ -183,7 +192,8 @@ void driveToPoint2(long setPoint)
 	cout << "Set point: " << setPoint << "\tActuator reading: " << sensorVal << endl;
 }
 
-void driveToPoint3(long setPoint) // For continuous movement, short motor operation timeout duration
+// For continuous movement, short motor operation timeout duration
+void driveToPoint3(long setPoint) 
 {
 	moving = true;
 	// Define the start time and the timeout period ( in microseconds)
@@ -218,7 +228,9 @@ void driveToPoint3(long setPoint) // For continuous movement, short motor operat
 	cout << "Set point: " << setPoint << "\tActuator reading: " << sensorVal << endl;
 }
 
-
+// Motor move function
+// Get timestamp when motor starts to move
+// Print out time duration for finishing one movement
 double Move(double depth, high_resolution_clock::time_point timestamp) //parameter in mm
 {
     //timeinfo time;
@@ -244,6 +256,7 @@ double Move(double depth, high_resolution_clock::time_point timestamp) //paramet
     return static_cast<double> (move_duration);
     
 }
+
 void Move2(double depth) //parameter in mm
 {
     stringstream mesSS;
@@ -259,7 +272,7 @@ void Move2(double depth) //parameter in mm
 
     driveToPoint2(moveTo);
 }
-
+// Ask motor to move back to 0mm
 void moveTillLimit(int Direction, int Speed) //this function moves the actuator to one of its limits
 {
     volatile long prevsensorVal=0;
@@ -279,9 +292,12 @@ void moveTillLimit(int Direction, int Speed) //this function moves the actuator 
     while(prevsensorVal !=sensorVal); //loop until all counts remain the same
     sensorVal = 0;
 }
+//////////////////////////////
+
 
 
 // Depth Data Processing
+// Determine couch position according to received depth measurement
 void processMotorCommandDepth(timewDepth info, double offset) {
     double depth_mm = info.depth / 100;
 
@@ -299,6 +315,7 @@ void processMotorCommandDepth(timewDepth info, double offset) {
 
 
 // Position Data Processing
+// Determine couch position according to received depth measurement
 void processMotorCommandPosition(PositionData position, double offset) {
     double KIM_latency = 0; // in ms 
     double target = position.y;
@@ -352,7 +369,7 @@ void motorControl(bool isDepth) {
     }
 }
 
-
+/// Receiving UDP signal thread ///
 timewDepth reader1D(const char *data_from_client){
 	timewDepth info;
 	
@@ -451,6 +468,7 @@ void receiveKIMUDPData(int socket, struct sockaddr_in* si_other, socklen_t* slen
         dataCondition.notify_one();
     }
 }
+//////////////////////////////
 
 // Main function
 int main() {
@@ -487,7 +505,12 @@ int main() {
     memset((char *) &si_me, 0, sizeof(si_me));
     si_me.sin_family = AF_INET;
     si_me.sin_port = htons(PORT);
-    si_me.sin_addr.s_addr = inet_addr("192.168.8.2"); // Give IP address here
+    si_me.sin_addr.s_addr = inet_addr(ipAddress); // Give IP address here "192.168.8.2"
+	
+    if (si_me.sin_addr.s_addr == INADDR_NONE) {
+        std::cerr << "Invalid IP address format: " << ipAddress << std::endl;
+        return 1;
+    }
 
     if (bind(s, (struct sockaddr *) &si_me, sizeof(si_me)) == -1) {
         cout << "Bind failed" << endl;
