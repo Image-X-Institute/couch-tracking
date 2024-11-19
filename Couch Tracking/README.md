@@ -2,12 +2,20 @@
 The system can be divided into two major components: Real-time target tracking and couch motion compensation. The tracking system communicates with couch via UDP transmission. 
 
 
-Motion compensation alrogithm was developed in C++ and executed by Raspberry Pi. It is responsible of receiving UDP signal, extracting the the signal and convert that into the 1D displacement that motor can travel accordingly. The motor operation code was developed from the previous 1D bullet-actuator application. 
+Motion compensation alrogithm was developed in C++ and executed by Raspberry Pi. It is responsible of receiving UDP signal, extracting measurements in specific direction and convert that into the 1D displacement that motor should travel to. The motion compensation is achieved by moving the couch in opposite direction of the target motion so that the absolute position deviates less from its isocenter. The motor operation code was developed from the previous study 1D bullet-actuator application. All algorithm and codes can be found under Pi folder.
 
-As the Real-time target tracking can be achieved by depth camera or KIM. Depth camera can measure 1D distance of a moving item and stream the measurements in real-time. Depth camera is used to verify the accuracy of the motor trace. Depth camera is also used to obtain real-time measurement of a target and letting the motor to replicated the measured motion. 
-<img width="1069" alt="Screenshot 2024-11-19 at 2 43 11 pm" src="https://github.com/user-attachments/assets/ffa5c5cd-3412-4ade-94e5-518275e14030">
+Couch compensation system can adapt to different real-time tracking system as long as the measurement information can be transferred and interpreted correctly by motion compensation algorithm.
 
-## On Raspberry Pi
+In this study, we implemented RealSense depth camera and KIM as our real-time target tracking tool.
+
+Depth camera can measure 1D distance of a moving item and stream the measurements in real-time. Depth camera is used to verify the accuracy of the motor trace. Depth camera is also used to obtain real-time measurement of a target and letting the motor to replicated the measured motion. 
+
+KIM algorithm reads kV images acquired in real-time and converts marker positions into numerical measurements in 6 degree-of-freedom. The measurements are sent to couch system via UDP communication.
+
+<img width="1196" alt="Screenshot 2024-11-19 at 2 44 28 pm" src="https://github.com/user-attachments/assets/620238d8-52e6-4f10-93bc-57e285ef51cb">
+
+
+## Couch compensation Raspberry Pi
 ### C++ code compile and running
 1. Complie
 - g++ -o [filename(.exe filename)] [filename.cpp(c++ file to be compiled)] -Wall -lwiringPi -std=c++14 -pthread
@@ -48,11 +56,13 @@ Listen to UDP transmission that contains 1D depth measurement. Motor home positi
 Listening to KIM UDP sender and perform motion compensation. This is meant to use in clincial environment. Robotic arm is on top of the couch holding a phantom. KV images are collected and processed by KIM. The real-time positional data points are sent via UDP transmission, received by Raspberry Pi which operate the motor to perform motion compensation. The couch response frequency can be adjusted for adapt to the KIM latency. This is done by changing the total sleep time after motor finishes its current movement. Longer sleeping time means slower response rate.
 
 #### UDPread_MotionCompensation.cpp
-Combine code reads depth measurement and KIM data, also slow down the couch response to better adapt to the KIM latency. Motor moves back to zero position, and then moves to isocenter. User can select incoming data type from console. For depth measurement, the code automatically starts receiving measurements and collect the first 30 frames to calculate the isocenter position. For KIM data, the isocenter value is set to 0.  
+Combine code reads depth measurement and KIM data, also slow down the couch response to better adapt to the KIM latency. Motor moves back to zero position, and then moves to isocenter. User can select incoming data type from console. For depth measurement, the code automatically starts receiving measurements and collect the first 30 frames to calculate the isocenter position. For KIM data, the isocenter value is set to 0 at default.  
 
 
-## UPD sender 
-Lidar 515 cemara minimum detect distance is 50mm. Cameras give most accurate measurement results after temperature drift is stable. It is the best to start depth measurement after switching on the camera for 20 minutes. 
+## Target tracking
+### Depth measurement (surface tracking)
+- Lidar 515 camera minimum detecting distance 50cm
+- Non-reflective surface improve tracking accuracy
 #### realsense_depth.py
 Pre-requisite for running depth cameras.
 #### UDPsend_MultiROI.py
