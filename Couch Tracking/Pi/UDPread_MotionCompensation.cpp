@@ -340,6 +340,8 @@ void processMotorCommandPosition(PositionData position, double offset) {
 }
 
 // Motor Control Thread Function
+// If motor is on, ignore all data coming in
+// if motor is off, it becomes available for another movement and take the next coming in data point
 void motorControl(bool isDepth) {
     while (true) {
         std::unique_lock<std::mutex> lock(queueMutex);
@@ -370,6 +372,7 @@ void motorControl(bool isDepth) {
 }
 
 /// Receiving UDP signal thread ///
+
 timewDepth reader1D(const char *data_from_client){
 	timewDepth info;
 	
@@ -381,6 +384,7 @@ timewDepth reader1D(const char *data_from_client){
 } 
 
 // UDP Receive Function for Depth
+
 void receiveUDPDepthData(int socket, struct sockaddr_in* si_other, socklen_t* slen) {
     char buf[SIZE];
     while (true) {
@@ -400,7 +404,7 @@ void receiveUDPDepthData(int socket, struct sockaddr_in* si_other, socklen_t* sl
     }
 }
 
-
+// Decode incoming KIM data point
 PositionData readerKIM(const char *data_from_client){
 		PositionData position;
 
@@ -451,6 +455,8 @@ void PrintThisIPAddress()
     }
 }
 
+// Receive KIM data and log into running log
+// Running log: timestamp, SI direction
 void receiveKIMUDPData(int socket, struct sockaddr_in* si_other, socklen_t* slen) {
     char buf[SIZE];
     while (true) {
@@ -517,6 +523,7 @@ int main() {
         return -1;
     }
 	cout << "Socket created, UDP listening ... " << endl;
+	
     // Ask the user which mode to operate in
     cout << "Select data type for operation (1: Depth Data, 2: Positional Data): ";
     int choice;
