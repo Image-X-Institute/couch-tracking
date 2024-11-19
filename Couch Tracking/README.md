@@ -1,6 +1,5 @@
 # Couch tracking and tumour motion replication 
-This project required Raspberry Pi and 1D motor. The motor is receiving tumour positional information via UDP from KIM and generate 1D corresponding motion in real-time.
-
+The system can be divided into two major components: Real-time target tracking and couch compensation. The tracking system communicates with couch via UDP transmission. 
 KIM is responsible for obtaining tumour motions, and send the 3D information via UDP sender. The KIM and UDP sender relevant codes can be found in KIM project. 
 Code developed in Raspberry Pi was written in C++. It is responsible of receiving UDP signal, extracting the the signal and convert that into the 1D displacement that motor can travel accordingly. The motor operation code was developed from the previous 1D bullet-actuator application. 
 Depth camera is used to verify the accuracy of the motor trace. Depth camera is also used to obtain real-time measurement of a target and letting the motor to replicated the measured motion. 
