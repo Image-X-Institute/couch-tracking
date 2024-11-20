@@ -7,11 +7,14 @@ To develop and test the motion compensation performance in an non-clinical envir
 
 For the system overview, see Couch tracking flowchart.pptx
 
+<img width="943" alt="Screenshot 2024-11-20 at 12 34 02 pm" src="https://github.com/user-attachments/assets/1993e61a-e578-4d34-b325-3c5e09cbad82">
+
+
 
 ## HARDWARE 
 ### Couch
 Treatment couch is designated to hold patient meanwhile capable of moving in 1-dimensional direction. Couch contains a base and a sliding top, the base part sits on top of the in-room treatment couch, the sliding part is connected to motor that enable motion compensation in 1D. Couch design and dimension is included in CTCouchDimensions.pptx.
-### Bullet actuator (couch motor)
+### Linear actuator motor (couch motor)
 Motor sits on the upper part of the couch base and connected to the sliding part of the couch. The motor is able to extend or extract at highest speed 12mm/s. A Raspberry Pi operates the couch motor corresponding to real-time tracking target measurement.
 ### Motion platform
 Motion platform is used to simulate patient motion for research and development purpose. In Image X laboratory, a 1-dimensional motion platform or a 6 degree-of-freedom robotic arm replicates real clincial recored patient motion, an item held by the motion platform is tracked in real-time.
