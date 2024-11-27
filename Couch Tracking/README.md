@@ -44,9 +44,9 @@ Listening to the KIM UDP sender and print the received data point on console. Th
 Listening to the KIM UDP sender and motor replicating 1D motion. The dimensional of the motion that replicated by motor can be specified. This is for testing in-lab, to see if motor is able to comprehend in-coming data point and run properly. This code can also be used for system latency testing. 
 
 ### Motion compensation 
-Algorithm explanation/Multi-thread etc.
 
 UDP reading thread receives incoming data point continuously. Motor operation thread determines the corresponding position that motor should travel to in order to achieve motion compensation, and skips the following measurements when motor is in operation. Once the current motor operation is done, the thread select the latest coming in measurement as the next operation data.
+<img width="1159" alt="Screenshot 2024-11-27 at 4 46 18 pm" src="https://github.com/user-attachments/assets/ee4a72a7-fa63-42d4-a5c4-937abdecf6c6">
 
 
 #### UDPread_Depth.cpp
