@@ -98,7 +98,7 @@ struct timewDepth {
 
 // Data structure for KIM data
 struct PositionData {
-    double x, y, z; // Translational data
+    double x, y, z; // Translational data LR, SI, AP
     double rx, ry, rz; // Rotational data
     double gantry; // Gantry angle
     bool beam_hold; // True or false
@@ -408,9 +408,9 @@ void receiveUDPDepthData(int socket, struct sockaddr_in* si_other, socklen_t* sl
 PositionData readerKIM(const char *data_from_client){
 		PositionData position;
 
-		memcpy(&position.x, data_from_client, sizeof(double));
-		memcpy(&position.y, data_from_client + sizeof(double), sizeof(double));
-		memcpy(&position.z, data_from_client + 2* sizeof(double), sizeof(double));
+		memcpy(&position.x, data_from_client, sizeof(double)); // LR
+		memcpy(&position.y, data_from_client + sizeof(double), sizeof(double)); // SI
+		memcpy(&position.z, data_from_client + 2* sizeof(double), sizeof(double)); // AP
 		memcpy(&position.rx, data_from_client, 3*sizeof(double));
 		memcpy(&position.ry, data_from_client + 4*sizeof(double), sizeof(double));
 		memcpy(&position.rz, data_from_client + 5* sizeof(double), sizeof(double));
