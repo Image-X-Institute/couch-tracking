@@ -65,7 +65,9 @@ Combine code reads depth measurement and KIM data, also slow down the couch resp
 - Lidar 515 camera minimum detecting distance 50cm
 - Non-reflective surface improve tracking accuracy
 #### realsense_depth.py
-Pre-requisite for running depth cameras.
+Pre-requisite for running depth cameras.Define the camera image resolution and other data format. Please select thr corresponding stream resolution when connecting to different depth camera. 
+realsense library installation:
+pip install pyrealsense2
 #### UDPsend_MultiROI.py
 User gets to select two ROIs with cursor on depth camera frame. After two ROIs being selected, depth measurement starts. The measurements are printed on screen on real-time. Depth measurement from ROI 1 will be sent via UDP sender, which is designed to be listened by Raspberry Pi and operate the couch motor. After exit the depth measurement, frame number, time stamp, ROI 1 measurement, ROI 2 measurement will be stored in an excel file. 
 #### Other software
