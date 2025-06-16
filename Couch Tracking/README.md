@@ -66,6 +66,8 @@ Combine code reads depth measurement and KIM data, also slow down the couch resp
 - Non-reflective surface improve tracking accuracy
 #### realsense_depth.py
 Pre-requisite for running depth cameras.Define the camera image resolution and other data format. Please select thr corresponding stream resolution when connecting to different depth camera. 
+
+
 realsense library installation:
 pip install pyrealsense2
 #### UDPsend_MultiROI.py
