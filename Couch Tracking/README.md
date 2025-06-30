@@ -22,6 +22,22 @@ KIM algorithm reads kV images acquired in real-time and converts marker position
 2. Running
 - sudo ./[filename(.exe filename)]
 
+
+### Motion compensation 
+
+UDP reading thread receives incoming data point continuously. Motor operation thread determines the corresponding position that motor should travel to in order to achieve motion compensation, and skips the following measurements when motor is in operation. Once the current motor operation is done, the thread select the latest coming in measurement as the next operation data.
+<img width="1159" alt="Screenshot 2024-11-27 at 4 46 18 pm" src="https://github.com/user-attachments/assets/ee4a72a7-fa63-42d4-a5c4-937abdecf6c6">
+
+
+#### UDPread_Depth.cpp
+Listen to UDP transmission that contains 1D depth measurement. Motor home position is set to 50mm. Offset value specify the distance bewteen depth camera and tracking object. Motor begins motion compensation with the given offset as home position. Home position and offset values can be changed and adapt to in practice setup. UDP listening and motor motion are seperated into two threads. Motor only execute the latest coming data point and ignore others while it is in operation.
+
+#### UDPread_KIM.cpp
+Listening to KIM UDP sender and perform motion compensation. This is meant to use in clincial environment. Robotic arm is on top of the couch holding a phantom. KV images are collected and processed by KIM. The real-time positional data points are sent via UDP transmission, received by Raspberry Pi which operate the motor to perform motion compensation. The couch response frequency can be adjusted for adapt to the KIM latency. This is done by changing the total sleep time after motor finishes its current movement. Longer sleeping time means slower response rate.
+
+#### UDPread_MotionCompensation.cpp
+Combine code reads depth measurement and KIM data, also slow down the couch response to better adapt to the KIM latency. Motor moves back to zero position, and then moves to isocenter. User can select incoming data type from console. For depth measurement, the code automatically starts receiving measurements and collect the first 30 frames to calculate the isocenter position. For KIM data, the isocenter value is set to 0 at default.  
+
 ### Function testing 
 Code under Testing code folder, designated for unit function testing. 
 
@@ -43,35 +59,22 @@ Listening to the KIM UDP sender and print the received data point on console. Th
 #### UDPreader_KIMreplicating.cpp
 Listening to the KIM UDP sender and motor replicating 1D motion. The dimensional of the motion that replicated by motor can be specified. This is for testing in-lab, to see if motor is able to comprehend in-coming data point and run properly. This code can also be used for system latency testing. 
 
-### Motion compensation 
-
-UDP reading thread receives incoming data point continuously. Motor operation thread determines the corresponding position that motor should travel to in order to achieve motion compensation, and skips the following measurements when motor is in operation. Once the current motor operation is done, the thread select the latest coming in measurement as the next operation data.
-<img width="1159" alt="Screenshot 2024-11-27 at 4 46 18 pm" src="https://github.com/user-attachments/assets/ee4a72a7-fa63-42d4-a5c4-937abdecf6c6">
-
-
-#### UDPread_Depth.cpp
-Listen to UDP transmission that contains 1D depth measurement. Motor home position is set to 50mm. Offset value specify the distance bewteen depth camera and tracking object. Motor begins motion compensation with the given offset as home position. Home position and offset values can be changed and adapt to in practice setup. UDP listening and motor motion are seperated into two threads. Motor only execute the latest coming data point and ignore others while it is in operation.
-
-#### UDPread_KIM.cpp
-Listening to KIM UDP sender and perform motion compensation. This is meant to use in clincial environment. Robotic arm is on top of the couch holding a phantom. KV images are collected and processed by KIM. The real-time positional data points are sent via UDP transmission, received by Raspberry Pi which operate the motor to perform motion compensation. The couch response frequency can be adjusted for adapt to the KIM latency. This is done by changing the total sleep time after motor finishes its current movement. Longer sleeping time means slower response rate.
-
-#### UDPread_MotionCompensation.cpp
-Combine code reads depth measurement and KIM data, also slow down the couch response to better adapt to the KIM latency. Motor moves back to zero position, and then moves to isocenter. User can select incoming data type from console. For depth measurement, the code automatically starts receiving measurements and collect the first 30 frames to calculate the isocenter position. For KIM data, the isocenter value is set to 0 at default.  
-
-
-
 ## Target tracking
 ### Depth measurement (surface tracking)
 - Lidar 515 camera minimum detecting distance 50cm
 - Non-reflective surface improve tracking accuracy
 #### realsense_depth.py
-Pre-requisite for running depth cameras.Define the camera image resolution and other data format. Please select thr corresponding stream resolution when connecting to different depth camera. 
+Pre-requisite for running depth cameras.Define the camera image resolution and other data format. Please select the corresponding stream resolution when connecting to different depth camera, and comment out the one not being used. L515 and D415 camera streams are available 
 
 
 realsense library installation:
 pip install pyrealsense2
 #### UDPsend_MultiROI.py
-User gets to select two ROIs with cursor on depth camera frame. After two ROIs being selected, depth measurement starts. The measurements are printed on screen on real-time. Depth measurement from ROI 1 will be sent via UDP sender, which is designed to be listened by Raspberry Pi and operate the couch motor. After exit the depth measurement, frame number, time stamp, ROI 1 measurement, ROI 2 measurement will be stored in an excel file. 
+User gets to select two ROIs with cursor on depth camera frame. After two ROIs being selected, depth measurement starts. The measurements are printed on screen on real-time. Depth measurement from ROI 1 will be sent via UDP sender, which is designed to be listened by Raspberry Pi and operate the couch motor. After exit the depth measurement, frame number, time stamp from realsense library, local timestamp, ROI 1 measurement, ROI 2 measurement will be stored in an excel file. 
+
+The measurements are pre-processed to show the deviation distances of the tracking target from the isocenter.
+
+The extra ROI2 can be used to measurement couch movement for motion analysis purpose. 
 #### Other software
 The couch tracking system works with both real-time depth camera measurements, and KIM measurements. In clinical setup, KV images are acquired and being processed by KIM, and communicates with couch tracking system via UDP. UDP transmission is built with a physical router and ethernet cables. (UDP can be done wirelessly howvever with the consideration of hospital IT system security requirement and stabilty, we decide to build physical connection.)
 ## Result Analysis 
