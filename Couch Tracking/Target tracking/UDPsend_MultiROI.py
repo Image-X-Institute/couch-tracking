@@ -201,8 +201,32 @@ while True:
     if key == 27:
         break
 
-# Save the measurements to a CSV file along with timestamps
-data_to_save = np.column_stack((frame_array, time_array, time_local_array, dist_array_1, dist_array_2))
-np.savetxt('new_lung_typical.csv', data_to_save, delimiter=',', header='Count,Time, Local Time, Distance 1, Distance 2', comments='')
-# Release resources
+# Convert lists to numpy arrays
+dist_array_1 = np.array(dist_array_1)
+dist_array_2 = np.array(dist_array_2)
+frame_array = np.array(frame_array)
+time_array = np.array(time_array)
+time_local_array = np.array(time_local_array)
+
+# Ensure there are more than 30 frames
+if len(dist_array_1) > 30:
+    # Calculate isocenter positions (mean of first 30 frames)
+    home_1 = np.mean(dist_array_1[:30])
+    home_2 = np.mean(dist_array_2[:30])
+
+    # Subtract home position from all subsequent frames
+    dist_array_1 = dist_array_1[30:] - home_1
+    dist_array_2 = dist_array_2[30:] - home_2
+    frame_array = frame_array[30:]
+    time_array = time_array[30:]
+    time_local_array = time_local_array[30:]
+
+    # Stack and save to CSV
+    data_to_save = np.column_stack((frame_array, time_array, time_local_array, dist_array_1, dist_array_2))
+    np.savetxt('new_lung_typical.csv', data_to_save, delimiter=',', 
+               header='Count, Time, Local Time, Distance 1, Distance 2', comments='')
+    print("Data saved with home compensation applied.")
+else:
+    print("Not enough frames collected to compute home position (need > 30). No CSV saved.")
+
 cv2.destroyAllWindows()
