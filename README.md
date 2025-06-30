@@ -24,8 +24,8 @@ Motion platform is used to simulate patient motion for research and development 
 ## SOFTWARE
 ### Motion compensation algorithm
 Motion compensation code is written in C++ and executed by Raspberry Pi (Linux system). Details can be found in Couch tracking folder. Motion compensation algorithm, unit testing code, sample couch running log and results are all included. 
-### motion platform control and input trace
-Motion platform control code can be found in Image-X-Institute-IntERAct gihub repository. 
+### Motion platform control and input trace
+Motion platform control code can be found in Image-X-Institute-IntERAct github repository. 
 
 - 1D motion platform input trace
   Trace contains timestamp and 1D positional information. Timestamps have 0.2 second interval.
@@ -37,7 +37,7 @@ Liver, lung and prostate motion trace in 1D motion platform and 6DoF robotic arm
 ### Target tracking methods
 - Depth measurement
 Details can be found in Couch tracking/Sender.
-- KIM
+- Kv imager with KIM algorithm 
 
 ## Getting Started 
 ### Requirements
