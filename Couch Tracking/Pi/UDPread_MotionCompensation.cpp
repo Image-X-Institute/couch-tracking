@@ -303,11 +303,11 @@ void processMotorCommandDepth(timewDepth info, double offset) {
 
     if (abs(depth_mm - offset) <= 40) {
         if (abs(depth_mm - offset) >= 0) {
-            double error = -(depth_mm - offset);
-            //adjusted -= error;
-	    double distance = adjusted+error;
+            double error = depth_mm - offset;
+            adjusted -= error;
+	    //double distance = adjusted+error;
             auto recv_time = high_resolution_clock::now();
-            double duration = Move(distance, recv_time);
+            double duration = Move(adjusted, recv_time);
             logFile << info.time << " " << duration_cast<microseconds>(recv_time.time_since_epoch()).count() << " " << depth_mm << " " << adjusted << " Move" << endl;
         }
     }
