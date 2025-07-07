@@ -98,7 +98,7 @@ struct timewDepth {
 
 // Data structure for KIM data
 struct PositionData {
-    double x, y, z; // Translational data LR, SI, AP
+    double x, y, z; // Translational data
     double rx, ry, rz; // Rotational data
     double gantry; // Gantry angle
     bool beam_hold; // True or false
@@ -155,26 +155,41 @@ void driveActuator(int Direction, int Speed) {
     }
 }
 
-// Let motor runs to a set location
-// Added timeout to prevent motor runs to limit
-void driveToPoint2(long setPoint)
+// PID parameters
+double Kp = 1.0;
+double Ki = 0.1;
+double Kd = 0.01
+
+double previousError = 0;
+double integral = 0;
+
+// For continuous movement, short motor operation timeout duration
+void driveToPoint_PID(long setPoint) 
 {
 	moving = true;
 	// Define the start time and the timeout period ( in microseconds)
 	long long start_time = micros();
-	long long timeout = 8000000; // 8 seconds timeout
+	long long timeout = 2000000; // 2 seconds timeout
 
 	while (abs(sensorVal - setPoint) > 66 && moving) // the motor usually takes ~66 steps between telling it to stop and it actually stopping
 	{
-		if (setPoint < (sensorVal)) //addition gives buffer to prevent actuator from rapidly vibrating due to noisy data inputs
+	    //Calculate the sensor value difference
+	    double diff_val = setPoint - sensorVal;
+	    integral += diff_val*0.01 // integral term (scaled by time)
+	    double derivative = (diff_val-previousError)/0.01; //Derivative term (scaled by time)
+	    
+	    // PID output
+	    double output = Kp*diff_val+ Ki*integral +Kd*derivative;
+	    
+		if ( output > 0) //addition gives buffer to prevent actuator from rapidly vibrating due to noisy data inputs
 		{
-			Direction = -1;
-			driveActuator(Direction, Speed);
+			Direction = 1; // extension 
+			driveActuator(Direction, min(abs(output),Speed));
 		}
-		else if (setPoint > (sensorVal))
+		else
 		{
-			Direction = 1;
-			driveActuator(Direction, Speed);
+			Direction = -1; // Retraction 
+			driveActuator(Direction, min(abs(output),Speed));
 		}
 		// check if the operation has exceeded the timeout period
 		if(micros() - start_time > timeout)
@@ -184,7 +199,7 @@ void driveToPoint2(long setPoint)
 			moving = false;
 			return;
 		}
-		usleep(500);
+		usleep(100);
 	}
 
 	driveActuator(0, Speed);
@@ -192,8 +207,12 @@ void driveToPoint2(long setPoint)
 	cout << "Set point: " << setPoint << "\tActuator reading: " << sensorVal << endl;
 }
 
+// Let motor runs to a set location
+// Added timeout to prevent motor runs to limit
+
+
 // For continuous movement, short motor operation timeout duration
-void driveToPoint3(long setPoint) 
+void driveToPoint(long setPoint) 
 {
 	moving = true;
 	// Define the start time and the timeout period ( in microseconds)
@@ -247,7 +266,7 @@ double Move(double depth, high_resolution_clock::time_point timestamp) //paramet
 	moveTo = 21800;
     }
 
-    driveToPoint3(moveTo);
+    driveToPoint(moveTo);
     
     auto end_Time = high_resolution_clock::now();
     auto move_duration = duration_cast<milliseconds>(end_Time-start_move_time).count();
@@ -257,21 +276,6 @@ double Move(double depth, high_resolution_clock::time_point timestamp) //paramet
     
 }
 
-void Move2(double depth) //parameter in mm
-{
-    stringstream mesSS;
-    mesSS << setprecision(4) << fixed << "Received Data: " << depth << " mm";
-    newMessage(mesSS.str());
-    
-
-    long moveTo = floor(depth*stepsPerMill);
-    if (moveTo > 21800) // don't allow the motor to hit end of range
-    {
-	moveTo = 21800;
-    }
-
-    driveToPoint2(moveTo);
-}
 // Ask motor to move back to 0mm
 void moveTillLimit(int Direction, int Speed) //this function moves the actuator to one of its limits
 {
@@ -408,9 +412,9 @@ void receiveUDPDepthData(int socket, struct sockaddr_in* si_other, socklen_t* sl
 PositionData readerKIM(const char *data_from_client){
 		PositionData position;
 
-		memcpy(&position.x, data_from_client, sizeof(double)); // LR
-		memcpy(&position.y, data_from_client + sizeof(double), sizeof(double)); // SI
-		memcpy(&position.z, data_from_client + 2* sizeof(double), sizeof(double)); // AP
+		memcpy(&position.x, data_from_client, sizeof(double));
+		memcpy(&position.y, data_from_client + sizeof(double), sizeof(double));
+		memcpy(&position.z, data_from_client + 2* sizeof(double), sizeof(double));
 		memcpy(&position.rx, data_from_client, 3*sizeof(double));
 		memcpy(&position.ry, data_from_client + 4*sizeof(double), sizeof(double));
 		memcpy(&position.rz, data_from_client + 5* sizeof(double), sizeof(double));
