@@ -3,8 +3,9 @@ import numpy as np
 import socket
 import struct
 import time
+from datetime import datetime, timezone
 from realsense_depth import DepthCamera
- 
+
 # UDP Communication class
 class UDP_Communication:
     def __init__(self, ip, port):
@@ -99,7 +100,7 @@ points = []  # List to store selected points for two ROIs
 roi_selected = False  # Flag to indicate if two ROIs are selected
  
 # Initialize UDP sender
-udp_sender = UDP_Communication("192.168.8.2", 1400)  # Change IP and port accordingly
+udp_sender = UDP_Communication("192.168.8.141", 1400)  # Change IP and port accordingly
  
 # Initialize depth camera
 dc = DepthCamera()
@@ -152,6 +153,7 @@ while True:
 
         dist_1_multi.append(distance1)
         dist_2_multi.append(distance2)
+
         # For D415 camera
         #dist_1_multi.append(distance1)
         #dist_2_multi.append(distance2)
@@ -178,12 +180,18 @@ while True:
             #dist_2_multi = []
             # Send only one depth measurement over UDP (for example, send distance1)
             #udp_sender.send_to_udp(frame_number, d1)  # Convert mm to meters
+            
+            # Timestamp from Unix epoch
             time_local_array.append(time.time())
-        
+
+            # Conversion unix timestamp to Time(ddMMyy_HHmmssfff) format to match robot's timestamp
+            time_local_array_dt =  [datetime.fromtimestamp(t) for t in time_local_array]
+            time_local_array_dt = [dt.strftime('%d%m%y_%H%M%S') + f"{int(dt.microsecond / 1000):03d}" for dt in time_local_array_dt]
+
             udp_sender.send_to_udp(frame_number, distance1)
             dist_array_1.append(distance1)
             dist_array_2.append(distance2)
-            print(distance1)
+            #print(distance1)
             #time.sleep(time_delay)
  
     # Display the depth frame
@@ -220,11 +228,13 @@ if len(dist_array_1) > 30:
     frame_array = frame_array[30:]
     time_array = time_array[30:]
     time_local_array = time_local_array[30:]
+    time_local_array_dt = time_local_array_dt[30:]
 
     # Stack and save to CSV
-    data_to_save = np.column_stack((frame_array, time_array, time_local_array, dist_array_1, dist_array_2))
-    np.savetxt('new_lung_typical.csv', data_to_save, delimiter=',', 
-               header='Count, Time, Local Time, Distance 1, Distance 2', comments='')
+    data_to_save = np.column_stack((frame_array,time_array,time_local_array_dt,dist_array_1,dist_array_2)).astype(str)
+    save_path = r"C:\Users\imagex_labl\Documents\GitHub\1D-couch-applications\Elisa\Experiments\No_5_final\Test_motion_113_robot_UPDATED_nc.csv"  
+    np.savetxt(save_path, data_to_save, delimiter=',', 
+               header='Count,Time,Time(ddMMyy_HHmmssfff_format),Distance 1,Distance 2', comments='', fmt='%s')
     print("Data saved with home compensation applied.")
 else:
     print("Not enough frames collected to compute home position (need > 30). No CSV saved.")
