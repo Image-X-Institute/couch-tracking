@@ -276,6 +276,28 @@ double Move(double depth, high_resolution_clock::time_point timestamp) //paramet
     
 }
 
+void Move2(double depth) // parameter in mm
+{
+	// timeinfo time;
+	auto strat_move_time = high_resolution_clock::now();
+
+	stringstream mesSS;
+	mesSS << setprecision(4) << fixed << "Received Data: " << depth << "mm";
+
+	long moveTo = floor(depth*stepsPerMill);
+	if (moveTo > 21800) // don't allow the motor to hit end of range
+	{
+		moveTo = 21800;
+	}
+	driveToPoint3(moveTo);
+
+	auto end_Time = high_resolution_clock::now();
+	auto move_duration = duration_cast<milliseconds>(end_Time-start_move_time).count();
+	float duration = move_duration;
+	std::cout << "Move duration: " << duration << "mm" << std::endl;
+	return static_cast<double> (move_duration);
+} 
+
 // Ask motor to move back to 0mm
 void moveTillLimit(int Direction, int Speed) //this function moves the actuator to one of its limits
 {
