@@ -24,6 +24,7 @@ Couch compensation simulation is done on c++, on Raspberry Pi. Tracking data poi
 1. Latency
 2. Motor speed
 3. Tracking frequency
+4. Target tracking frequency
 
 
 
