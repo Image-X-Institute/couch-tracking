@@ -4,6 +4,9 @@ The emulator is aim to simulate the couch tracking hardware and algorithm all or
 
 
 # Emulator -- Motion simulation
+<img width="1472" height="749" alt="Screenshot 2025-08-18 at 10 43 42 pm" src="https://github.com/user-attachments/assets/c61150ac-8de5-49fa-aeb9-5835ddb26c85" />
+
+
 In real world setup, couch tracking is made of two major components: 1) Target tracking, 2) Couch compensation. Two components are communicated via UDP. 
 
 Target tracking is achieved by depth camera that meausures 1D distances, or KIM algorithm that calculates the implanted marker positions from reconstructed kV images in real-time. The tracking tool measures target (patient's internal tumour) motion and send them via UDP in real-time to couch that controlled by Raspberry Pi. Based on the sent measurements, Couch tracking algorithm calculated the deviation of the target from the set iso-centre, and perform motion compensation.
