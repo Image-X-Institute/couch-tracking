@@ -1,0 +1,163 @@
+# This file should match timestamp and plot the signals
+
+import os
+from pathlib import Path
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+########## DEPTH CAMERA DATA
+ROOT = Path(r"C:\Users\imagex_labl\Documents\Elisa\Experiments\No_5_final\camera\flipped")
+FILES = {
+    "comp-med":  ROOT / "2.Medium_complexity_093_robot_UPDATED_comp.csv",
+    "nc-med":    ROOT / "2.Medium_complexity_093_robot_UPDATED_nc.csv",
+
+    "comp-mean": ROOT / "4.Mean_motion_2_111_robot_UPDATED_comp.csv",
+    "nc-mean":   ROOT / "4.Mean_motion_2_111_robot_UPDATED_nc.csv",
+
+    "comp-AP":   ROOT / "Lung_Baseline_Shifts_AP_120s_robot_UPDATED_comp.csv",
+    "nc-AP":     ROOT / "Lung_Baseline_Shifts_AP_120s_robot_UPDATED_nc.csv",
+
+    "comp-SI":   ROOT / "Lung_Typical_SI_120s_robot_UPDATED_comp.csv",
+    "nc-SI":     ROOT / "Lung_Typical_SI_120s_robot_UPDATED_nc.csv",
+
+    "comp-091":  ROOT / "Test_motion_091_robot_UPDATED_comp.csv",
+    "nc-091":    ROOT / "Test_motion_091_robot_UPDATED_nc.csv",
+
+    "comp-113":  ROOT / "Test_motion_113_robot_UPDATED_comp.csv",
+    "nc-113":    ROOT / "Test_motion_113_robot_UPDATED_nc.csv",
+
+    "comp-1":    ROOT / "Trace 1-Stable target baseline_robot_300s_UPDATED_comp.csv",
+    "nc-1":      ROOT / "Trace 1-Stable target baseline_robot_300s_UPDATED_nc.csv",
+
+    "comp-2":    ROOT / "Trace 2-Persistant excursion_robot_300s_UPDATED_comp.csv",
+    "nc-2":      ROOT / "Trace 2-Persistant excursion_robot_300s_UPDATED_nc.csv",
+
+    "comp-3":    ROOT / "Trace 3-Erratic behaviour_robot_300s_UPDATED_comp.csv",
+    "nc-3":      ROOT / "Trace 3-Erratic behaviour_robot_300s_UPDATED_nc.csv",
+    
+    "comp-4":    ROOT / "Trace 4-Continuous target drift_robot_300s_UPDATED_comp.csv",
+    "nc-4":      ROOT / "Trace 4-Continuous target drift_robot_300s_UPDATED_nc.csv",
+    # "test": ROOT/"Lung_Baseline_Shifts_AP_120s_robot_replicated4flipped.csv"
+
+    }
+
+######### OUTPUT FILES ROBOT
+root = Path(r"C:\Users\imagex_labl\Documents\Elisa\Experiments\No_5_final\robot_files")
+files = {
+
+    "comp-med":  root / "2.Medium_complexity_093_robot_UPDATED_070725-103501311.txt",
+    "nc-med":    root / "2.Medium_complexity_093_robot_UPDATED_070725-104803728.txt",
+
+    "comp-mean": root / "4.Mean_motion_2_111_robot_UPDATED_070725-150244411.txt",
+    "nc-mean":   root / "4.Mean_motion_2_111_robot_UPDATED_070725-150817333.txt",
+
+    "comp-AP":   root / "Lung_Baseline_Shifts_AP_120s_robot_UPDATED_070725-112657138.txt",
+    "nc-AP":     root / "Lung_Baseline_Shifts_AP_120s_robot_UPDATED_070725-113040641.txt",
+
+    "comp-SI":   root / "Lung_Typical_SI_120s_robot_UPDATED_070725-113328055.txt",
+    "nc-SI":     root / "Lung_Typical_SI_120s_robot_UPDATED_070725-113606533.txt",
+
+    "comp-091":  root / "Test_motion_091_robot_UPDATED_070725-151527321.txt",
+    "nc-091":    root / "Test_motion_091_robot_UPDATED_070725-152219424.txt",
+
+    "comp-113":  root / "Test_motion_113_robot_UPDATED_070725-152802538.txt",
+    "nc-113":    root / "Test_motion_113_robot_UPDATED_070725-153342993.txt",
+
+    "comp-1":    root / "Trace 1-Stable target baseline_robot_300s_UPDATED_070725-125834249.txt",
+    "nc-1":      root / "Trace 1-Stable target baseline_robot_300s_UPDATED_070725-130449938.txt",
+
+    "comp-2":    root / "Trace 2-Persistant excursion_robot_300s_UPDATED_070725-131135191.txt",
+    "nc-2":      root / "Trace 2-Persistant excursion_robot_300s_UPDATED_070725-132427659.txt",
+
+    "comp-3":    root / "Trace 3-Erratic behaviour_robot_300s_UPDATED_070725-133018648.txt",
+    "nc-3":      root / "Trace 3-Erratic behaviour_robot_300s_UPDATED_070725-133608424.txt",
+    
+    "comp-4":    root / "Trace 4-Continuous target drift_robot_300s_UPDATED_070725-134211669.txt",
+    "nc-4":      root / "Trace 4-Continuous target drift_robot_300s_UPDATED_070725-134754267.txt",
+
+    # "test" : root/"Lung_Baseline_Shifts_AP_120s_robot_UPDATED_220725-164402633.txt"
+    }
+
+# Conversion of ddMMyy_HHmmssfff to seconds
+def timefloat_to_seconds(t):
+    # Convert float or int to zero-padded string of length 9 (HHmmssfff)
+    s = f"{int(t):09d}"  # e.g. 125838275 -> "125838275"
+    
+    HH = int(s[0:2])
+    mm = int(s[2:4])
+    ss = int(s[4:6])
+    fff = int(s[6:9])
+    
+    total_seconds = HH * 3600 + mm * 60 + ss + fff / 1000
+    return total_seconds
+
+common_part = "4"
+
+key = f"nc-{common_part}"    # not compensated
+KEY = f"comp-{common_part}"  # compensated
+
+
+FILEPATH = FILES[KEY]
+BASE_NAME = os.path.splitext(os.path.basename(FILEPATH))[0] # to get the file name for plot title
+
+
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(17, 13))
+ax1.axhline(0, color='gray', linewidth=1, zorder=1)
+ax2.axhline(0, color='gray', linewidth=1, zorder=1)
+
+# === TOP: Robot + NON-compensated ===
+robot_nc = pd.read_csv(files[key])
+robot_nc['Time_float'] = robot_nc['Time(ddMMyy_HHmmssfff_format)'].str.split('_').str[1].astype(float)
+robot_nc['Seconds'] = robot_nc['Time_float'].apply(timefloat_to_seconds)
+robot_start = robot_nc['Seconds'].iloc[0]
+robot_nc['Time_aligned'] = robot_nc['Seconds'] - robot_start
+
+nc = pd.read_csv(FILES[key]) 
+nc['Time_float'] = nc['Time(ddMMyy_HHmmssfff_format)'].str.split('_').str[1].astype(float)
+nc['Seconds'] = nc['Time_float'].apply(timefloat_to_seconds)
+nc['Time_aligned'] = nc['Seconds'] - robot_start
+
+ax1.plot(robot_nc["Time_aligned"], robot_nc["y(mm)"], label="Robot's motion", color='black')
+ax1.plot(nc["Time_aligned"], nc["Distance 1"], label='Residual motion', color='blue')
+ax1.set_ylabel("Motion (mm)", fontsize=20)
+leg1 = ax1.legend(fontsize=20)
+leg1.set_draggable(True)
+ax1.tick_params(axis='both', labelsize=16)
+# ax1.grid(True)
+
+# === BOTTOM: Robot + COMPENSATED ===
+robot_comp = pd.read_csv(files[KEY])
+robot_comp['Time_float'] = robot_comp['Time(ddMMyy_HHmmssfff_format)'].str.split('_').str[1].astype(float)
+robot_comp['Seconds'] = robot_comp['Time_float'].apply(timefloat_to_seconds)
+robot_start_comp = robot_comp['Seconds'].iloc[0]
+robot_comp['Time_aligned'] = robot_comp['Seconds'] - robot_start_comp
+
+compensated = pd.read_csv(FILES[KEY]) 
+compensated['Time_float'] = compensated['Time(ddMMyy_HHmmssfff_format)'].str.split('_').str[1].astype(float)
+compensated['Seconds'] = compensated['Time_float'].apply(timefloat_to_seconds)
+compensated['Time_aligned'] = compensated['Seconds'] - robot_start_comp
+
+ax2.plot(robot_comp["Time_aligned"], robot_comp["y(mm)"], label="Robot's motion", color='black')
+ax2.plot(compensated["Time_aligned"], compensated["Distance 1"], label='Residual motion', color='blue')
+ax2.set_xlabel("Time (s)", fontsize=20)
+ax2.set_ylabel("Motion (mm)", fontsize=20)
+leg2 = ax2.legend(fontsize=20)
+leg2.set_draggable(True)
+ax2.tick_params(axis='both', labelsize=16)
+# ax2.grid(True)
+
+ax1.text(0.98, 0.02, "(a)", transform=ax1.transAxes, fontsize=20, fontweight='bold',
+         va='bottom', ha='right')
+ax2.text(0.98, 0.02, "(b)", transform=ax2.transAxes, fontsize=20, fontweight='bold',
+         va='bottom', ha='right')
+
+ymin = min(ax1.get_ylim()[0], ax2.get_ylim()[0])
+ymax = max(ax1.get_ylim()[1], ax2.get_ylim()[1])
+
+# Apply the same limits to both
+ax1.set_ylim(ymin, ymax)
+ax2.set_ylim(ymin, ymax)
+
+plt.tight_layout()
+plt.show()
