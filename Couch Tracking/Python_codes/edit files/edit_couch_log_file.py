@@ -1,4 +1,4 @@
-# This script extract relevant data from couch's log file to plot couch's motion
+# This script edit couch log file to have the same structure as files from the depth camera
 
 import numpy as np
 import os

@@ -1,4 +1,4 @@
-# Turns he signal upside down o it represented the robot actual motion
+# Turns he signal upside down so it fits the robot actual coordinate system
 import numpy as np
 import os
 import glob

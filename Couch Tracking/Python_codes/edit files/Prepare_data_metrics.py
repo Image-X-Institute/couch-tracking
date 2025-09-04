@@ -1,4 +1,6 @@
-# This file should match timestamp and plot the signals
+# Prepare data to calculate metrics as RME and MAE
+# Cutting signals so they have the same lenth
+# Undersampling if needed to have the same amount of samples
 
 import os
 from pathlib import Path
@@ -7,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 ########## DEPTH CAMERA DATA
-ROOT = Path(r"C:\Users\imagex_labl\Documents\Elisa\Experiments\No_5_final\camera\flipped")
+ROOT = Path(r"C:/Users/imagex_labl/Documents/GitHub/1D-couch-applications/Elisa/Experiments/No_5_final/camera/flipped")
 FILES = {
     "comp-med":  ROOT / "2.Medium_complexity_093_robot_UPDATED_comp.csv",
     "nc-med":    ROOT / "2.Medium_complexity_093_robot_UPDATED_nc.csv",
@@ -38,19 +40,17 @@ FILES = {
     
     "comp-4":    ROOT / "Trace 4-Continuous target drift_robot_300s_UPDATED_comp.csv",
     "nc-4":      ROOT / "Trace 4-Continuous target drift_robot_300s_UPDATED_nc.csv",
-    # "test": ROOT/"Lung_Baseline_Shifts_AP_120s_robot_replicated4flipped.csv"
 
     }
-KEY = "comp-113" # <-- change this one line
+KEY = "comp-2" # <-- change this one line
 FILEPATH = FILES[KEY]
 camera = pd.read_csv(FILEPATH)
 BASE_NAME = os.path.splitext(os.path.basename(FILEPATH))[0] # to get the file name for plot title
 
 
 ######### OUTPUT FILES ROBOT
-root = Path(r"C:\Users\imagex_labl\Documents\Elisa\Experiments\No_5_final\robot_files")
+root = Path(r"C:/Users/imagex_labl/Documents/GitHub/1D-couch-applications/Elisa/Experiments/No_5_final/robot_files")
 files = {
-
     "comp-med":  root / "2.Medium_complexity_093_robot_UPDATED_070725-103501311.txt",
     "nc-med":    root / "2.Medium_complexity_093_robot_UPDATED_070725-104803728.txt",
 
@@ -81,9 +81,8 @@ files = {
     "comp-4":    root / "Trace 4-Continuous target drift_robot_300s_UPDATED_070725-134211669.txt",
     "nc-4":      root / "Trace 4-Continuous target drift_robot_300s_UPDATED_070725-134754267.txt",
 
-    # "test" : root/"Lung_Baseline_Shifts_AP_120s_robot_UPDATED_220725-164402633.txt"
     }
-key  = "comp-113" # <-- change this one line
+key  = "comp-2"# <-- change this one line
 filepath = files[key]
 robot = pd.read_csv(filepath)
 
@@ -114,28 +113,49 @@ robot_start = robot['Seconds'].iloc[0]
 robot['Time_aligned'] = robot['Seconds'] - robot_start
 camera['Time_aligned'] = camera['Seconds'] - robot_start 
 
+# 1. Get robot start and end time
+robot_start_time = robot['Time_aligned'].min()
+robot_end_time = robot['Time_aligned'].max()
+
+# 2. Filter the camera data to only keep the part during robot motion
+camera_trimmed = camera[(camera['Time_aligned'] >= robot_start_time) & (camera['Time_aligned'] <= robot_end_time)]
+
+# 3. Downsample the data from camera
+n_robot = len(robot)
+n_camera = len(camera_trimmed)
+
+# Use numpy to select indices that evenly span the camera data
+indices = np.linspace(0, n_camera - 1, n_robot).astype(int)
+
+# Downsample camera
+camera_undersampled = camera_trimmed.iloc[indices].reset_index(drop=True)
+
 # Plot the two files
-plt.figure(figsize=(19, 7))
-plt.plot(camera["Time_aligned"], camera["Distance 1"], label='residual motion', color='blue')
-plt.plot(robot["Time_aligned"], robot["y(mm)"], label='robot\'s motion', color='black')
-plt.xlabel("Time (s)", fontsize=20)
-plt.ylabel("Motion (mm)", fontsize=20)
-BASE_NAME = "Test motion 113"
-plt.title(BASE_NAME, fontsize=24)
-plt.grid(True)
-# plt.ylim(-10, 10)
-plt.legend(fontsize=26)
-plt.xticks(fontsize=20)
-plt.yticks(fontsize=20)
-plt.tight_layout()
+# plt.figure(figsize=(17, 8))
+# # plt.plot(camera["Time_aligned"], camera["Distance 1"], label='not compensated motion', color='blue')
+# plt.plot(camera_trimmed["Time_aligned"], camera_trimmed["Distance 1"], label='trimmed', color='green')
+# plt.scatter(camera_undersampled["Time_aligned"], camera_undersampled["Distance 1"], label = 'undersampled', color = 'red', s=10)
+# plt.plot(robot["Time_aligned"], robot["y(mm)"], label='robot\'s motion', color='black')
+# plt.xlabel("Time (s)", fontsize=20)
+# plt.ylabel("Motion (mm)", fontsize=20)
+# plt.title(BASE_NAME, fontsize=24)
+# plt.grid(True)
+# plt.legend(fontsize=20)
+# plt.xticks(fontsize=20)
+# plt.yticks(fontsize=20)
+# plt.tight_layout()
+# plt.show()
 
+print(len(robot))
+print(len(camera_undersampled))
+print(camera_trimmed.head)
 
-# Saving as a .png
-# result_folder = 'C:/Users/imagex_labl/Documents/GitHub/1D-couch-applications/Elisa/Experiments/No_5_final/Results_bis'  
-# os.makedirs(result_folder, exist_ok=True)            
+# Saving as a .csv
+result_folder = 'C:/Users/imagex_labl/Documents/GitHub/1D-couch-applications/Elisa/Experiments/No_5_final/metrics'  
+os.makedirs(result_folder, exist_ok=True)            
 
-# results_png = os.path.join(result_folder, f"{BASE_NAME}.png")
+output_path = os.path.join(result_folder, BASE_NAME + ".csv")
+camera_undersampled.to_csv(output_path, index=False)
 
-# plt.savefig(results_png)
+print(f"✔️ {BASE_NAME} -> {result_folder}")
 
-plt.show()

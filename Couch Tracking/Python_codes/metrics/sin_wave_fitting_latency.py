@@ -1,4 +1,4 @@
-# Sine wave fitting or depth camera data to determine maximums and compute latency between target motion and couch's response
+# Sine wave fitting for latency experiment in replication mode to determine maximas and compute latency between target motion and couch's response
 
 import numpy as np
 import csv
@@ -48,7 +48,7 @@ distance2 = camera["Distance 2"]
 ## Trimming of the data to keep only the central region (remove outliers from camera start/stop)
 n = len(time)
 trim_fraction = 0.1  # 5% from each end
-# save = 1
+save = 0
 
 # Initial guess: A, f, phi, C
 guess = [15, 1/13, 0, 0]
@@ -108,8 +108,8 @@ peak_values2 = distance2_fit[peak_indices2]
 latency = [(t2 - t1)* 1e3 for t1, t2 in zip(peak_times1, peak_times2)]
 
 # Save to csv
-# folder = r"C:\Users\imagex_labl\Documents\Elisa\Experiments\No_6_latency\compensation"
-# csv_file = os.path.join(folder, f"{BASE_NAME}_peaks.csv")
+folder = r"C:\Users\imagex_labl\Documents\Elisa\Z-Other\final_presentation"
+# csv_file = os.path.join(folder, f"{BASE_NAME}_peaks.
 
 # Determine number of peaks (ensure equal length for both traces)
 n_peaks = max(len(peak_times1), len(peak_times2))
@@ -178,10 +178,10 @@ legend.set_draggable(True)
 fig.tight_layout()
 
 # Save if needed
-# if save:
-#     os.makedirs(folder, exist_ok=True)            
-#     results_png = os.path.join(folder, f"{BASE_NAME}.png")
-#     fig.savefig(results_png)
+if save:
+    os.makedirs(folder, exist_ok=True)            
+    results_png = os.path.join(folder, f"{BASE_NAME}.png")
+    fig.savefig(results_png)
 selected_text = {'obj': None}
 
 def on_pick(event):

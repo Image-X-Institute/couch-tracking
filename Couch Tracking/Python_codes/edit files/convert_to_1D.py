@@ -1,4 +1,4 @@
-# This script convert 6 DOF traces into 1D traces by keeping the largest motion and putting everything else at 0
+# This script converts 6 DOF traces into 1D traces by keeping the largest motion and putting everything else at 0
 
 import numpy as np
 import os

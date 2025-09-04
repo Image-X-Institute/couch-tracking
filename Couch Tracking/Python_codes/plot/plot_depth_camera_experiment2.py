@@ -1,6 +1,6 @@
-# Prepare data to calculate metrics as RME and MAE
-# Cutting signals so they have the same lenth
-# Undersampling if neede to have the same amount of samples
+# This scripts plot the data from the depth camera (= target seen by the camera)
+# and the robot's files (actual motion of the robot) for both compnesated and not compensated 
+# The not compensated plot is on top and the compensated one is on bottom
 
 import os
 from pathlib import Path
@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 ########## DEPTH CAMERA DATA
-ROOT = Path(r"C:/Users/imagex_labl/Documents/GitHub/1D-couch-applications/Elisa/Experiments/No_5_final/camera/flipped")
+ROOT = Path(r"C:\Users\imagex_labl\Documents\Elisa\Experiments\No_5_final\camera\flipped")
 FILES = {
     "comp-med":  ROOT / "2.Medium_complexity_093_robot_UPDATED_comp.csv",
     "nc-med":    ROOT / "2.Medium_complexity_093_robot_UPDATED_nc.csv",
@@ -40,17 +40,14 @@ FILES = {
     
     "comp-4":    ROOT / "Trace 4-Continuous target drift_robot_300s_UPDATED_comp.csv",
     "nc-4":      ROOT / "Trace 4-Continuous target drift_robot_300s_UPDATED_nc.csv",
+    # "test": ROOT/"Lung_Baseline_Shifts_AP_120s_robot_replicated4flipped.csv"
 
     }
-KEY = "comp-2" # <-- change this one line
-FILEPATH = FILES[KEY]
-camera = pd.read_csv(FILEPATH)
-BASE_NAME = os.path.splitext(os.path.basename(FILEPATH))[0] # to get the file name for plot title
-
 
 ######### OUTPUT FILES ROBOT
-root = Path(r"C:/Users/imagex_labl/Documents/GitHub/1D-couch-applications/Elisa/Experiments/No_5_final/robot_files")
+root = Path(r"C:\Users\imagex_labl\Documents\Elisa\Experiments\No_5_final\robot_files")
 files = {
+
     "comp-med":  root / "2.Medium_complexity_093_robot_UPDATED_070725-103501311.txt",
     "nc-med":    root / "2.Medium_complexity_093_robot_UPDATED_070725-104803728.txt",
 
@@ -81,14 +78,8 @@ files = {
     "comp-4":    root / "Trace 4-Continuous target drift_robot_300s_UPDATED_070725-134211669.txt",
     "nc-4":      root / "Trace 4-Continuous target drift_robot_300s_UPDATED_070725-134754267.txt",
 
+    # "test" : root/"Lung_Baseline_Shifts_AP_120s_robot_UPDATED_220725-164402633.txt"
     }
-key  = "comp-2"# <-- change this one line
-filepath = files[key]
-robot = pd.read_csv(filepath)
-
-# Extraction of the time in ddMMyy_HHmmssfff, conversion from string to float
-robot['Time_float'] = robot['Time(ddMMyy_HHmmssfff_format)'].str.split('_').str[1].astype(float)
-camera['Time_float'] = camera['Time(ddMMyy_HHmmssfff_format)'].str.split('_').str[1].astype(float)
 
 # Conversion of ddMMyy_HHmmssfff to seconds
 def timefloat_to_seconds(t):
@@ -103,59 +94,82 @@ def timefloat_to_seconds(t):
     total_seconds = HH * 3600 + mm * 60 + ss + fff / 1000
     return total_seconds
 
-camera['Seconds'] = camera['Time_float'].apply(timefloat_to_seconds)
-robot['Seconds'] = robot['Time_float'].apply(timefloat_to_seconds)
+common_part = "4"
 
-# Matching of timestamps
-# Get the first timestamp of the robot (robot starts moving)
-robot_start = robot['Seconds'].iloc[0]
+key = f"nc-{common_part}"    # not compensated
+KEY = f"comp-{common_part}"  # compensated
 
-robot['Time_aligned'] = robot['Seconds'] - robot_start
-camera['Time_aligned'] = camera['Seconds'] - robot_start 
 
-# 1. Get robot start and end time
-robot_start_time = robot['Time_aligned'].min()
-robot_end_time = robot['Time_aligned'].max()
+FILEPATH = FILES[KEY]
+BASE_NAME = os.path.splitext(os.path.basename(FILEPATH))[0] # to get the file name for plot title
 
-# 2. Filter the camera data to only keep the part during robot motion
-camera_trimmed = camera[(camera['Time_aligned'] >= robot_start_time) & (camera['Time_aligned'] <= robot_end_time)]
 
-# 3. Downsample the data from camera
-n_robot = len(robot)
-n_camera = len(camera_trimmed)
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(17, 13))
+ax1.axhline(0, color='gray', linewidth=1, zorder=1)
+ax2.axhline(0, color='gray', linewidth=1, zorder=1)
 
-# Use numpy to select indices that evenly span the camera data
-indices = np.linspace(0, n_camera - 1, n_robot).astype(int)
+# === TOP: Robot + NON-compensated ===
+robot_nc = pd.read_csv(files[key])
+robot_nc['Time_float'] = robot_nc['Time(ddMMyy_HHmmssfff_format)'].str.split('_').str[1].astype(float)
+robot_nc['Seconds'] = robot_nc['Time_float'].apply(timefloat_to_seconds)
+robot_start = robot_nc['Seconds'].iloc[0]
+robot_nc['Time_aligned'] = robot_nc['Seconds'] - robot_start
 
-# Downsample camera
-camera_undersampled = camera_trimmed.iloc[indices].reset_index(drop=True)
+nc = pd.read_csv(FILES[key]) 
+nc['Time_float'] = nc['Time(ddMMyy_HHmmssfff_format)'].str.split('_').str[1].astype(float)
+nc['Seconds'] = nc['Time_float'].apply(timefloat_to_seconds)
+nc['Time_aligned'] = nc['Seconds'] - robot_start
 
-# Plot the two files
-# plt.figure(figsize=(17, 8))
-# # plt.plot(camera["Time_aligned"], camera["Distance 1"], label='not compensated motion', color='blue')
-# plt.plot(camera_trimmed["Time_aligned"], camera_trimmed["Distance 1"], label='trimmed', color='green')
-# plt.scatter(camera_undersampled["Time_aligned"], camera_undersampled["Distance 1"], label = 'undersampled', color = 'red', s=10)
-# plt.plot(robot["Time_aligned"], robot["y(mm)"], label='robot\'s motion', color='black')
-# plt.xlabel("Time (s)", fontsize=20)
-# plt.ylabel("Motion (mm)", fontsize=20)
-# plt.title(BASE_NAME, fontsize=24)
-# plt.grid(True)
-# plt.legend(fontsize=20)
-# plt.xticks(fontsize=20)
-# plt.yticks(fontsize=20)
-# plt.tight_layout()
-# plt.show()
+ax1.plot(robot_nc["Time_aligned"], robot_nc["y(mm)"], label="Robot's motion", color='black')
+ax1.plot(nc["Time_aligned"], nc["Distance 1"], label='Residual motion', color='blue')
+ax1.set_ylabel("Motion (mm)", fontsize=20)
+leg1 = ax1.legend(fontsize=20)
+leg1.set_draggable(True)
+ax1.tick_params(axis='both', labelsize=16)
+# ax1.grid(True)
 
-print(len(robot))
-print(len(camera_undersampled))
-print(camera_trimmed.head)
+# === BOTTOM: Robot + COMPENSATED ===
+robot_comp = pd.read_csv(files[KEY])
+robot_comp['Time_float'] = robot_comp['Time(ddMMyy_HHmmssfff_format)'].str.split('_').str[1].astype(float)
+robot_comp['Seconds'] = robot_comp['Time_float'].apply(timefloat_to_seconds)
+robot_start_comp = robot_comp['Seconds'].iloc[0]
+robot_comp['Time_aligned'] = robot_comp['Seconds'] - robot_start_comp
 
-# Saving as a .csv
-result_folder = 'C:/Users/imagex_labl/Documents/GitHub/1D-couch-applications/Elisa/Experiments/No_5_final/metrics'  
-os.makedirs(result_folder, exist_ok=True)            
+compensated = pd.read_csv(FILES[KEY]) 
+compensated['Time_float'] = compensated['Time(ddMMyy_HHmmssfff_format)'].str.split('_').str[1].astype(float)
+compensated['Seconds'] = compensated['Time_float'].apply(timefloat_to_seconds)
+compensated['Time_aligned'] = compensated['Seconds'] - robot_start_comp
 
-output_path = os.path.join(result_folder, BASE_NAME + ".csv")
-camera_undersampled.to_csv(output_path, index=False)
+ax2.plot(robot_comp["Time_aligned"], robot_comp["y(mm)"], label="Robot's motion", color='black')
+ax2.plot(compensated["Time_aligned"], compensated["Distance 1"], label='Residual motion', color='blue')
+ax2.set_xlabel("Time (s)", fontsize=20)
+ax2.set_ylabel("Motion (mm)", fontsize=20)
+leg2 = ax2.legend(fontsize=20)
+leg2.set_draggable(True)
+ax2.tick_params(axis='both', labelsize=16)
+# ax2.grid(True)
 
-print(f"✔️ {BASE_NAME} -> {result_folder}")
+ax1.text(0.98, 0.02, "(a)", transform=ax1.transAxes, fontsize=20, fontweight='bold',
+         va='bottom', ha='right')
+ax2.text(0.98, 0.02, "(b)", transform=ax2.transAxes, fontsize=20, fontweight='bold',
+         va='bottom', ha='right')
 
+ymin = min(ax1.get_ylim()[0], ax2.get_ylim()[0])
+ymax = max(ax1.get_ylim()[1], ax2.get_ylim()[1])
+
+# Apply the same limits to both
+ax1.set_ylim(ymin, ymax)
+ax2.set_ylim(ymin, ymax)
+
+plt.tight_layout()
+
+# Saving as a .png
+# result_folder = 'C:/Users/imagex_labl/Documents/GitHub/1D-couch-applications/Elisa/Experiments/No_5_final/Results_bis'  
+# os.makedirs(result_folder, exist_ok=True)            
+
+# results_png = os.path.join(result_folder, f"{BASE_NAME}.png")
+
+# plt.savefig(results_png)
+
+
+plt.show()

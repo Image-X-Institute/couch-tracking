@@ -1,4 +1,6 @@
-# This file should match timestamp and plot the signals for robot log files
+# This scrips plot the diagram for step traces'latency
+# It shows the motion of the target (=step trace) and the corresponding motion of 
+# the couch with vertical lines to show how the latency has been computed
 
 import os
 from pathlib import Path
@@ -8,7 +10,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Cursor
 
 ########## DEPTH CAMERA DATA files
-ROOT = Path(r"C:\Users\imagex_labl\Documents\Elisa\Experiments\No_6_latency\compensation")
+ROOT = Path(r"C:\Users\imagex_labl\Documents\Elisa\Experiments\No_6_latency\compensation\camera")
 FILES = {
    "test" : ROOT/"test.csv",        
    "step_3-1" : ROOT /"step_3-1.csv",
@@ -22,7 +24,7 @@ FILES = {
    "step_7-3" : ROOT /"step_7-3.csv",
 
     }
-KEY ="step_7-1" # <-- change this one line
+KEY ="step_3-1" # <-- change this one line
 FILEPATH = FILES[KEY]
 camera = pd.read_csv(FILEPATH)
 BASE_NAME = os.path.splitext(os.path.basename(FILEPATH))[0] # to get the file name for plot title
@@ -40,7 +42,7 @@ files = {
     "step_7-2" : root /"step_7_UPDATED-2_310725-130853285.txt",
     "step_7-3" : root /"step_7_UPDATED-3_310725-131117034.txt",
     }
-key  = "step_7-1" # <-- change this one line
+key  = "step_3-1" # <-- change this one line
 filepath = files[key]
 robot = pd.read_csv(filepath, sep=' ')
 
@@ -71,24 +73,24 @@ robot['Time_sec'] = robot['Time_sec'] - start
 ####### Plot
 fig, ax = plt.subplots(figsize=(12, 8))  # Create fig and ax properly
 ax.axhline(0, color='gray', linewidth=0.5, zorder=1)
-# ax.plot(camera["Time_sec"], -camera["Distance 1"], label='Target motion', color='blue')
+ax.plot(camera["Time_sec"], -camera["Distance 1"], label='Residual motion', color='orange')
 ax.plot(camera["Time_sec"], -camera["Distance 2"], label="Couch", color='black')
 ax.plot(robot['Time_sec'], robot["y(mm)"], label="Target", color="green")
 text = []
 
 ######## STEP 3-1 ############
-# x_pos = 6.306          # robot
-# x_pos2 = 6.851          # couch
+x_pos = 6.306          # robot
+x_pos2 = 6.851          # couch
 
-# ax.axvline(x=x_pos, color='red', linestyle='--', linewidth=2)
-# txt1 = ax.text(5, 3, f"{x_pos:.3f}s", rotation=0, color='red', fontsize=20)
-# txt1.set_picker(True)
-# text.append(txt1)
+ax.axvline(x=x_pos, color='red', linestyle='--', linewidth=2)
+txt1 = ax.text(5, 3, f"{x_pos:.3f}s", rotation=0, color='red', fontsize=20)
+txt1.set_picker(True)
+text.append(txt1)
 
-# ax.axvline(x=x_pos2, color='red', linestyle='--', linewidth=2)
-# txt2 = ax.text(7, -4.77, f"{x_pos2:.3f}s", rotation=0, color='red', fontsize=20)
-# txt2.set_picker(True)
-# text.append(txt2)
+ax.axvline(x=x_pos2, color='red', linestyle='--', linewidth=2)
+txt2 = ax.text(7, -4.77, f"{x_pos2:.3f}s", rotation=0, color='red', fontsize=20)
+txt2.set_picker(True)
+text.append(txt2)
 
 ####### STEP 5-1 ###########
 # x_pos = 7.664        # robot
@@ -105,18 +107,18 @@ text = []
 # text.append(txt2)
 
 ######## STEP 7-1 ############
-x_pos = 6.557           # robot
-x_pos2 = 7.572          # couch
+# x_pos = 6.557           # robot
+# x_pos2 = 7.572          # couch
 
-ax.axvline(x=x_pos, color='red', linestyle='--', linewidth=2)
-txt1 = ax.text(4.20, 7.14, f"{x_pos:.3f}s", rotation=0, color='red', fontsize=20)
-txt1.set_picker(True)
-text.append(txt1)
+# ax.axvline(x=x_pos, color='red', linestyle='--', linewidth=2)
+# txt1 = ax.text(4.20, 7.14, f"{x_pos:.3f}s", rotation=0, color='red', fontsize=20)
+# txt1.set_picker(True)
+# text.append(txt1)
 
-ax.axvline(x=x_pos2, color='red', linestyle='--', linewidth=2)
-txt2 = ax.text(8.18, -8.71, f"{x_pos2:.3f}s", rotation=0, color='red', fontsize=20)
-txt2.set_picker(True)
-text.append(txt2)
+# ax.axvline(x=x_pos2, color='red', linestyle='--', linewidth=2)
+# txt2 = ax.text(8.18, -8.71, f"{x_pos2:.3f}s", rotation=0, color='red', fontsize=20)
+# txt2.set_picker(True)
+# text.append(txt2)
 
 ##### Labels and formatting
 ax.set_xlabel("Time (s)", fontsize=20)
