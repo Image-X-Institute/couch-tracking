@@ -32,15 +32,15 @@ Couch compensation simulation is done on c++, on Raspberry Pi. Tracking data poi
 
 
 
-## Couch compensation
+# Couch compensation
 If you would like to run a simulation that cloest to the real-world hardware and software design, an option of running the motion compensation on Raspberry Pi with c++ code is available. The emulator_couch.cpp has the same architecture compared to the real compensation algorithm, apart from the motor is not moving. The moving duration is calculated on moving displacement/motor speed. 
 
-## How to run
+# How to run
 python integrated_emulator.py --mode local --trace "Lung_Predominantly_Left_Right_robot_120s.txt" --latency 0 --velocity 12 --track-dt 0.05
 
 Run this command line on window command prompt or visual studio code.
 
-# Mode 
+## Mode 
 The emulator can be ran in two modes: 1) Local simulation, 2) Data sampling and sending only
 
 1) Local simulation
@@ -51,19 +51,21 @@ All simulation, including motor compensation is simualted on one local device
 
 The data receiving and motor compensation is simulated on Raspberry Pi. 
 
-# Motion to be simulated
+Run emulator_couch.cpp on Raspberry Pi. UDP connection needs to be established via router and ethernet cable.
+
+## Motion to be simulated
 trace: Give the motion trace file name
 
-# System latency 
+## System latency 
 latency: Define the system latency
 
 Unit is in second (s).
 
-# Tracking interval (sample frequency)
+## Tracking interval (sample frequency)
 
 track-dt: Define the motion sending interval. Unit is in second. The original motion traces were sampled in 200ms. If a different interval is given, motion file will be interploated.
 
-# Other parameters
+## Other parameters
 Other arguments: UDP ip address etc. The emulator runs by default value if otherwise not specified.
 
 
