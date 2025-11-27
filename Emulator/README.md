@@ -91,6 +91,11 @@ Time \ Original_motion \ Compensated_motion(SentY) \ Received_feedback \ ActualS
 
 SendTime \ Motor compensation feedback
 
+## Plot
+The emulator code generates a plot contians input motion, compensated motion and couch movement.
+
+<img width="3000" height="1800" alt="plot_lung_typical_depth txt_0 000s_20250910_145022" src="https://github.com/user-attachments/assets/0e6b40a8-a171-4ff1-8959-28ed02dc30f4" />
+
 
 
 
