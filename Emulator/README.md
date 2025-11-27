@@ -74,15 +74,3 @@ Other arguments: UDP ip address etc. The emulator runs by default value if other
 
 
 
-<<<<<<< HEAD
-## Couch compensation
-- emulator_couch.cpp
-Run on Raspberry Pi has the identical motion compensation logic compared to the real couch tracking system. As the target tracking component is simulated in emulator, apart from the compensation algorithm, the code also send the couch motor movement to the corresponding device via UDP as feedback.
-- emulator_stability.cpp
-  Added damper to simulate real-world physics. Parameters: gain, smoothing factor, deadband can be changed. 
-## Tracking tracking
-In real system, target tracking is achieved by depth camera or KIM. The tracking tool measures target motion and send positional information in real-time to couch that controlled by Raspberry Pi. The measurements reflect the tracking target's own movement and couch compensated positions.
-In emulator, this is achieved by emulatorSend.ipynb. The code takes in a clinical measured patient motion trace, sends out the measurements based on the orignal time stamps. At the same time, it receives feedback from couch compensation component. Combined motion represent the true movement of the tracking target that being compensated. 
-At the end of the simulation, the code plots the compensated motion versus orignal input motion which allows us to study the impact of system latency.
-=======
->>>>>>> Ann_dev
