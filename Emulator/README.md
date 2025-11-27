@@ -36,9 +36,23 @@ Couch compensation simulation is done on c++, on Raspberry Pi. Tracking data poi
 If you would like to run a simulation that cloest to the real-world hardware and software design, an option of running the motion compensation on Raspberry Pi with c++ code is available. The emulator_couch.cpp has the same architecture compared to the real compensation algorithm, apart from the motor is not moving. The moving duration is calculated on moving displacement/motor speed. 
 
 # How to run
-python integrated_emulator.py --mode local --trace "Lung_Predominantly_Left_Right_robot_120s.txt" --latency 0 --velocity 12 --track-dt 0.05
 
-Run this command line on window command prompt or visual studio code.
+```bash
+python integrated_emulator.py --mode local --trace "Lung_Predominantly_Left_Right_robot_120s.txt" --latency 0 --velocity 12 --track-dt 0.05
+```
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--mode`        | "cross" | "cross" = send to external Pi; "local" = run Python motor emulator |
+| `--trace`       | *required* | Path to input motion trace file (e.g., `Lung_Predominantly_Left_Right_robot_120s.txt`) |
+| `--latency`     | 0 | Tracker latency (seconds) |
+| `--velocity`    | 12.0 | Motor velocity (mm/s) for local emulator. Default motor speed is 12mm/s, consistent with real motor hardware |
+| `--track-dt`    | `None` | Tracker sampling interval in seconds (e.g., 0.05 for 50 ms). Change the tracking time interval by perform interpolation on orignal input motion file If omitted, use file as-is. |
+| `--local-port`  | 2400 | UDP port the tracker listens on for feedback |
+| `--target-port` | 1400 | UDP port the motor listens on for commands |
+| `--pi-ip` | `192.168.8.2` | Target IP for cross-device mode (Pi motor emulator) |
+
+
 
 ## Mode 
 The emulator can be ran in two modes: 1) Local simulation, 2) Data sampling and sending only
@@ -70,9 +84,11 @@ Other arguments: UDP ip address etc. The emulator runs by default value if other
 
 ## Emulator running log
 1. Simulation log 
+
 Time \ Original_motion \ Compensated_motion(SentY) \ Received_feedback \ ActualSendTime\
 
 2. Feedback log
+
 SendTime \ Motor compensation feedback
 
 
