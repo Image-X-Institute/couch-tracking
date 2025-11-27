@@ -68,6 +68,13 @@ track-dt: Define the motion sending interval. Unit is in second. The original mo
 ## Other parameters
 Other arguments: UDP ip address etc. The emulator runs by default value if otherwise not specified.
 
+## Emulator running log
+1. Simulation log 
+Time \ Original_motion \ Compensated_motion(SentY) \ Received_feedback \ ActualSendTime\
+
+2. Feedback log
+SendTime \ Motor compensation feedback
+
 
 
 
