@@ -83,6 +83,8 @@ track-dt: Define the motion sending interval. Unit is in second. The original mo
 Other arguments: UDP ip address etc. The emulator runs by default value if otherwise not specified.
 
 ## Emulator running log
+Two logs will be generated and saved after the simulation is finished.
+
 1. Simulation log 
 
 Time \ Original_motion \ Compensated_motion(SentY) \ Received_feedback \ ActualSendTime\
@@ -92,7 +94,7 @@ Time \ Original_motion \ Compensated_motion(SentY) \ Received_feedback \ ActualS
 SendTime \ Motor compensation feedback
 
 ## Plot
-The emulator code generates a plot contians input motion, compensated motion and couch movement.
+After the simulation, emulator code generates a plot contians input motion, compensated motion and couch movement.
 
 <img width="3000" height="1800" alt="plot_lung_typical_depth txt_0 000s_20250910_144452" src="https://github.com/user-attachments/assets/5d924148-99cb-449e-b344-f8fb2c73fe99" />
 
